@@ -1,0 +1,27 @@
+{
+  "name": "utility-user-app",
+  "description": "A utility user installable app for discord, e.g. for running code or math expressions on the fly.",
+  "license": "GPL-3.0-only",
+  "module": "src/server.ts",
+  "type": "module",
+  "scripts": {
+    "watch": "bun run --watch src/server.ts",
+    "start": "bun run src/server.ts",
+    "deploy-commands": "bun run src/commands.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/express": "^4.17.21",
+    "discord-api-types": "^0.37.97"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "discord-interactions": "^4.0.0",
+    "discord.js": "dev",
+    "express": "^4.19.2",
+    "math-expression-evaluator": "^2.0.5",
+    "tweetnacl": "^1.0.3"
+  }
+}
