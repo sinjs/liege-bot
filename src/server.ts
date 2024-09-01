@@ -58,4 +58,4 @@ app.post("/interactions", verifyKeyMiddleware(env("DISCORD_PUBLIC_KEY")), async 
   }
 });
 
-app.listen(4444, () => console.log("App listening on http://localhost:4444"));
+app.listen(7890, () => console.log("App listening on http://localhost:7890"));

@@ -1,0 +1,13 @@
+[Unit]
+Description=A utility user installable app for discord, e.g. for running code or math expressions on the fly.
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/src/code-user-app
+ExecStart=/root/.bun/bin/bun start
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
