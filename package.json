@@ -22,6 +22,7 @@
     "discord.js": "dev",
     "express": "^4.19.2",
     "math-expression-evaluator": "^2.0.5",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "ky": "^1.7.1"
   }
 }
