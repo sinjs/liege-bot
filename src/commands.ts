@@ -13,8 +13,13 @@ import {
 } from "discord.js";
 
 export type Command = {
-  data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder | SlashCommandSubcommandsOnlyBuilder;
-  execute(command: APICommand): APIInteractionResponse | Promise<APIInteractionResponse>;
+  data:
+    | SlashCommandBuilder
+    | SlashCommandOptionsOnlyBuilder
+    | SlashCommandSubcommandsOnlyBuilder;
+  execute(
+    command: APICommand
+  ): APIInteractionResponse | Promise<APIInteractionResponse>;
 };
 
 export type APICommand = APIApplicationCommandInteraction & {

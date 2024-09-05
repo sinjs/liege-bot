@@ -42,7 +42,9 @@ async function handleCommand(
           new EmbedBuilder()
             .setColor("Red")
             .setDescription(
-              `**The command failed to execute due to an error:**\n${codeBlock(String(error))}`
+              `**The command failed to execute due to an error:**\n${codeBlock(
+                String(error)
+              )}`
             )
             .toJSON(),
         ],
@@ -51,11 +53,15 @@ async function handleCommand(
   }
 }
 
-app.post("/interactions", verifyKeyMiddleware(env("DISCORD_PUBLIC_KEY")), async (req, res) => {
-  const message: APIInteraction = req.body;
-  if (message.type === InteractionType.ApplicationCommand) {
-    return await handleCommand(message, req, res);
+app.post(
+  "/interactions",
+  verifyKeyMiddleware(env("DISCORD_PUBLIC_KEY")),
+  async (req, res) => {
+    const message: APIInteraction = req.body;
+    if (message.type === InteractionType.ApplicationCommand) {
+      return await handleCommand(message, req, res);
+    }
   }
-});
+);
 
 app.listen(7890, () => console.log("App listening on http://localhost:7890"));

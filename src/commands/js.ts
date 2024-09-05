@@ -28,7 +28,12 @@ export default {
         const result = await execute({
           language: "js",
           version: "*",
-          files: [{ name: "index.js", content: code?.value ?? "console.log('Hello, world!');" }],
+          files: [
+            {
+              name: "index.js",
+              content: code?.value ?? "console.log('Hello, world!');",
+            },
+          ],
         });
 
         await editInitialResponse(interaction.token, {
@@ -36,13 +41,16 @@ export default {
             embed
               .setDescription(
                 `**Code:**\n${codeBlock(code?.value)}\n**Result:**\n${codeBlock(
-                  result.run.output || "[No output. Make sure to console.log the expression]"
+                  result.run.output ||
+                    "[No output. Make sure to console.log the expression]"
                 )}`
               )
               .setFooter({
-                text: `${result.run.signal ? `Signal: ${result.run.signal} | ` : ""}Exit Code: ${
-                  result.run.code
-                } | Runtime: ${result.language} ${result.version}`,
+                text: `${
+                  result.run.signal ? `Signal: ${result.run.signal} | ` : ""
+                }Exit Code: ${result.run.code} | Runtime: ${result.language} ${
+                  result.version
+                }`,
               })
           ),
         });
@@ -57,7 +65,9 @@ export default {
 
     // Workaround to defer interaction response
     return new Promise((resolve) => {
-      resolve({ type: InteractionResponseType.DeferredChannelMessageWithSource });
+      resolve({
+        type: InteractionResponseType.DeferredChannelMessageWithSource,
+      });
       runCommand();
     });
   },

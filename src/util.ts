@@ -80,7 +80,9 @@ export async function getCommands<UseJson extends boolean = false>(
   for (const file of commandFiles) {
     const filePath = join(commandsPath, file);
     const { default: command }: { default: Command } = await import(filePath);
-    commands.push((json ? command.data.toJSON() : command) as CommandOrJson<UseJson>);
+    commands.push(
+      (json ? command.data.toJSON() : command) as CommandOrJson<UseJson>
+    );
   }
 
   return commands;
@@ -94,20 +96,20 @@ class OptionNotSpecifiedError extends Error {
 
 export type StringOption = APIApplicationCommandInteractionDataStringOption;
 
-export function getOption<OptionT extends APIApplicationCommandInteractionDataOption>(
-  command: APICommand,
-  name: string
-): OptionT {
+export function getOption<
+  OptionT extends APIApplicationCommandInteractionDataOption
+>(command: APICommand, name: string): OptionT {
   const option = getOptionalOption<OptionT>(command, name);
   if (!option) throw new OptionNotSpecifiedError(name);
   return option;
 }
 
-export function getOptionalOption<OptionT extends APIApplicationCommandInteractionDataOption>(
-  command: APICommand,
-  name: string
-): OptionT | undefined {
-  return command.data.options?.find((option) => option.name === name) as OptionT | undefined;
+export function getOptionalOption<
+  OptionT extends APIApplicationCommandInteractionDataOption
+>(command: APICommand, name: string): OptionT | undefined {
+  return command.data.options?.find((option) => option.name === name) as
+    | OptionT
+    | undefined;
 }
 
 type EmbedType = "success" | "error" | "warning" | "none";

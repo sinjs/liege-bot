@@ -1,6 +1,11 @@
 import { codeBlock, InteractionResponseType } from "discord.js";
 import type { Command } from "../commands";
-import { embeds, ExtendedSlashCommandBuilder, getOption, type StringOption } from "../util";
+import {
+  embeds,
+  ExtendedSlashCommandBuilder,
+  getOption,
+  type StringOption,
+} from "../util";
 import Mexp from "math-expression-evaluator";
 
 export default {
@@ -25,9 +30,9 @@ export default {
         data: {
           embeds: embeds({ type: "success" }, (embed) =>
             embed.setDescription(
-              `**Expression:**\n${codeBlock(expression.value)}\n**Result:**\n${codeBlock(
-                evaluated.toString()
-              )}`
+              `**Expression:**\n${codeBlock(
+                expression.value
+              )}\n**Result:**\n${codeBlock(evaluated.toString())}`
             )
           ),
         },
@@ -38,9 +43,9 @@ export default {
         data: {
           embeds: embeds({ type: "error" }, (embed) =>
             embed.setDescription(
-              `**Expression:**\n${codeBlock(expression.value)}\n**Error:**\n${codeBlock(
-                String(error)
-              )}`
+              `**Expression:**\n${codeBlock(
+                expression.value
+              )}\n**Error:**\n${codeBlock(String(error))}`
             )
           ),
         },
