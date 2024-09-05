@@ -1,4 +1,4 @@
-# code-user-app
+# utility-user-app
 
 To install dependencies:
 
