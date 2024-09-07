@@ -4,9 +4,12 @@ import {
   embeds,
   ExtendedSlashCommandBuilder,
   getOption,
+  getUser,
   type StringOption,
 } from "../util";
 import Mexp from "math-expression-evaluator";
+import { insertUserAction } from "../lib/user-actions";
+import { UserActionType } from "@prisma/client";
 
 export default {
   data: new ExtendedSlashCommandBuilder()
@@ -19,11 +22,20 @@ export default {
         .setDescription("The expression to evaluate")
         .setRequired(true)
     ),
-  execute(interaction) {
+  async execute(interaction) {
     const expression = getOption<StringOption>(interaction, "expression");
+    const user = getUser(interaction);
 
     try {
       const evaluated = new Mexp().eval(expression.value);
+
+      await insertUserAction({
+        user_id: user.id,
+        type: UserActionType.CodeExecution,
+        code_expression: expression.value,
+        code_output: evaluated.toString(),
+        code_language: "math",
+      });
 
       return {
         type: InteractionResponseType.ChannelMessageWithSource,

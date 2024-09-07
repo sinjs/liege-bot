@@ -4,11 +4,16 @@ import {
   editInitialResponse,
   embeds,
   ExtendedSlashCommandBuilder,
+  generateSecret,
   getOption,
+  getUser,
   type StringOption,
 } from "../util";
 import ky from "ky";
 import { execute } from "../lib/codeapi";
+import { db } from "../lib/db";
+import { insertUserAction } from "../lib/user-actions";
+import { UserActionType } from "@prisma/client";
 
 export default {
   data: new ExtendedSlashCommandBuilder()
@@ -24,6 +29,8 @@ export default {
     async function runCommand() {
       const code = getOption<StringOption>(interaction, "code");
 
+      const user = getUser(interaction);
+
       try {
         const result = await execute({
           language: "js",
@@ -34,6 +41,14 @@ export default {
               content: code?.value ?? "console.log('Hello, world!');",
             },
           ],
+        });
+
+        await insertUserAction({
+          user_id: user.id,
+          type: UserActionType.CodeExecution,
+          code_expression: code.value,
+          code_output: result.run.output,
+          code_language: "js",
         });
 
         await editInitialResponse(interaction.token, {

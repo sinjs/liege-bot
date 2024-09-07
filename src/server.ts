@@ -35,6 +35,8 @@ async function handleCommand(
 
     return res.json(commandResponse);
   } catch (error) {
+    console.error(error);
+
     return res.json({
       type: InteractionResponseType.ChannelMessageWithSource,
       data: {

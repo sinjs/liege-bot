@@ -6,6 +6,7 @@ import {
   SlashCommandBuilder,
   type APIApplicationCommandInteractionDataOption,
   type APIApplicationCommandInteractionDataStringOption,
+  type APIInteraction,
   type APIInteractionResponse,
   type ColorResolvable,
   type RESTPatchAPIWebhookJSONBody,
@@ -17,6 +18,7 @@ import { join } from "node:path";
 import { readdir } from "node:fs/promises";
 import type { APICommand, Command } from "./commands";
 import ky from "ky";
+import crypto from "node:crypto";
 
 export function env(key: string): string {
   const value = process.env[key];
@@ -88,7 +90,7 @@ export async function getCommands<UseJson extends boolean = false>(
   return commands;
 }
 
-class OptionNotSpecifiedError extends Error {
+export class OptionNotSpecifiedError extends Error {
   constructor(public optionName: string) {
     super(`The option '${optionName}' has not been specified.`);
   }
@@ -110,6 +112,26 @@ export function getOptionalOption<
   return command.data.options?.find((option) => option.name === name) as
     | OptionT
     | undefined;
+}
+
+export function getSubcommandOption<
+  OptionT extends APIApplicationCommandInteractionDataOption
+>(
+  options: APIApplicationCommandInteractionDataOption[],
+  name: string
+): OptionT {
+  const option = getSubcommandOptionalOption<OptionT>(options, name);
+  if (!option) throw new OptionNotSpecifiedError(name);
+  return option;
+}
+
+export function getSubcommandOptionalOption<
+  OptionT extends APIApplicationCommandInteractionDataOption
+>(
+  options: APIApplicationCommandInteractionDataOption[],
+  name: string
+): OptionT | undefined {
+  return options.find((option) => option.name === name) as OptionT | undefined;
 }
 
 type EmbedType = "success" | "error" | "warning" | "none";
@@ -157,4 +179,16 @@ export async function editInitialResponse(
     `https://discord.com/api/v${APIVersion}/webhooks/${process.env.DISCORD_APPLICATION_ID}/${interactionToken}/messages/@original`,
     { json: response }
   );
+}
+
+export function generateSecret(length: number = 24) {
+  return crypto.randomBytes(length).toString("base64url").slice(0, length);
+}
+
+export function getUser(command: APIInteraction) {
+  const user = command.user ?? command.member?.user;
+
+  if (!user) throw new Error("User is not defined");
+
+  return user;
 }
