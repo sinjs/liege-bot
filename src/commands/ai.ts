@@ -1,4 +1,5 @@
 import {
+  type APIInteractionResponse,
   ApplicationCommandOptionType,
   InteractionResponseType,
   MessageFlagsBitField,
@@ -16,14 +17,14 @@ import {
   type StringOption,
 } from "../util";
 import { db } from "../lib/db";
-import ky from "ky";
+import ky, { HTTPError } from "ky";
 import { insertUserAction } from "../lib/user-actions";
 import { UserActionType } from "@prisma/client";
 
 type APISubcommand =
   Required<APIApplicationCommandInteractionDataSubcommandOption>;
 
-const tokenNotLinkedResponse = {
+const tokenNotLinkedResponse: APIInteractionResponse = {
   type: InteractionResponseType.ChannelMessageWithSource,
   data: {
     embeds: embeds({ type: "error" }, (embed) =>
@@ -42,7 +43,10 @@ async function getToken(userID: string) {
   return linkedToken;
 }
 
-async function generateImage(command: APICommand, subcommand: APISubcommand) {
+async function generateImage(
+  command: APICommand,
+  subcommand: APISubcommand
+): Promise<APIInteractionResponse> {
   const user = getUser(command);
 
   const imagePromptOption = getSubcommandOption<StringOption>(
@@ -55,29 +59,44 @@ async function generateImage(command: APICommand, subcommand: APISubcommand) {
   if (!token) return tokenNotLinkedResponse;
 
   async function run() {
-    const res = await ky.post("https://ai.nigga.church/v2/generate/image", {
-      headers: { Authorization: token!.ai_token },
-      json: {
-        prompt: imagePromptOption.value,
-      },
-      timeout: 30 * 1000,
-    });
+    try {
+      const res = await ky.post("https://ai.nigga.church/v2/generate/image", {
+        headers: { Authorization: token!.ai_token },
+        json: {
+          prompt: imagePromptOption.value,
+        },
+        timeout: 30 * 1000,
+      });
 
-    const { imageURL } = await res.json<{ imageURL: string }>();
+      const { imageURL } = await res.json<{ imageURL: string }>();
 
-    await insertUserAction({
-      user_id: user.id,
-      type: UserActionType.AIGenerateImage,
-      ai_prompt: imagePromptOption.value,
-      ai_result: imageURL,
-    });
+      await insertUserAction({
+        user_id: user.id,
+        type: UserActionType.AIGenerateImage,
+        ai_prompt: imagePromptOption.value,
+        ai_result: imageURL,
+      });
 
-    await editInitialResponse(command.token, {
-      content: imageURL,
-    });
+      await editInitialResponse(command.token, {
+        content: imageURL,
+      });
+    } catch (error) {
+      if (error instanceof HTTPError && error.response.status === 500) {
+        const response: { modelResponse?: string } =
+          await error.response.json();
+        if (!response.modelResponse) throw error;
+        await editInitialResponse(command.token, {
+          content:
+            "**The image could not be generated, however the AI model returned a text as a response.**\n" +
+            response.modelResponse,
+        });
+      } else {
+        throw error;
+      }
+    }
   }
 
-  return new Promise((resolve) => {
+  return new Promise<APIInteractionResponse>((resolve) => {
     resolve({
       type: InteractionResponseType.DeferredChannelMessageWithSource,
     });
@@ -85,7 +104,10 @@ async function generateImage(command: APICommand, subcommand: APISubcommand) {
   });
 }
 
-async function generateText(command: APICommand, subcommand: APISubcommand) {
+async function generateText(
+  command: APICommand,
+  subcommand: APISubcommand
+): Promise<APIInteractionResponse> {
   const user = getUser(command);
 
   const textPromptOption = getSubcommandOption<StringOption>(
@@ -126,7 +148,7 @@ async function generateText(command: APICommand, subcommand: APISubcommand) {
     });
   }
 
-  return new Promise((resolve) => {
+  return new Promise<APIInteractionResponse>((resolve) => {
     resolve({
       type: InteractionResponseType.DeferredChannelMessageWithSource,
     });
@@ -134,7 +156,10 @@ async function generateText(command: APICommand, subcommand: APISubcommand) {
   });
 }
 
-async function linkToken(command: APICommand, subcommand: APISubcommand) {
+async function linkToken(
+  command: APICommand,
+  subcommand: APISubcommand
+): Promise<APIInteractionResponse> {
   const user = getUser(command);
 
   const tokenOption = getSubcommandOptionalOption<StringOption>(
@@ -241,18 +266,20 @@ export default {
   async execute(command) {
     const subcommand = command.data.options?.find(
       (o) => o.type === ApplicationCommandOptionType.Subcommand
-    );
+    ) as APISubcommand;
+
     if (!subcommand || !subcommand.options)
       throw new OptionNotSpecifiedError("subcommand");
 
     switch (subcommand.name) {
       case "text":
-
+        return await generateText(command, subcommand);
       case "image":
-
+        return await generateImage(command, subcommand);
       case "link":
+        return await linkToken(command, subcommand);
     }
 
-    throw new Error("Subcommand ${subcommand.name} does not exist");
+    throw new Error(`Subcommand ${subcommand.name} does not exist`);
   },
 } satisfies Command;
