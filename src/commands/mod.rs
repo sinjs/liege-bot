@@ -1,11 +1,16 @@
-use serenity::all::{CreateCommand, CreateInteractionResponse, ResolvedOption};
+use std::sync::Arc;
 
-use crate::error::Error;
+use serenity::all::{CommandInteraction, CreateCommand, CreateInteractionResponse, ResolvedOption};
 
-pub mod math;
+use crate::{error::Error, AppState};
+
+mod ai;
+mod math;
 
 pub trait Command {
-    async fn run<'a>(options: &'a [ResolvedOption<'_>])
-        -> Result<CreateInteractionResponse, Error>;
+    async fn run(interaction: CommandInteraction, state: Arc<AppState>) -> Result<(), Error>;
     fn register() -> CreateCommand;
 }
+
+pub use ai::AiCommand;
+pub use math::MathCommand;

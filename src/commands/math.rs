@@ -1,17 +1,22 @@
+use std::sync::Arc;
+
 use anyhow::anyhow;
 use serenity::all::{
-    Color, CommandOptionType, CreateCommand, CreateCommandOption, CreateEmbed,
+    Color, CommandInteraction, CommandOptionType, CreateCommand, CreateCommandOption, CreateEmbed,
     CreateInteractionResponse, CreateInteractionResponseMessage, ResolvedOption, ResolvedValue,
 };
+use tokio::sync::Mutex;
 
-use crate::error::Error;
+use crate::{error::Error, AppState};
 
 use super::Command;
 
 pub struct MathCommand;
 
 impl Command for MathCommand {
-    async fn run(options: &[ResolvedOption<'_>]) -> Result<CreateInteractionResponse, Error> {
+    async fn run(interaction: CommandInteraction, state: Arc<AppState>) -> Result<(), Error> {
+        let options = interaction.data.options();
+
         let &ResolvedOption {
             value: ResolvedValue::String(expression),
             ..
@@ -36,10 +41,18 @@ impl Command for MathCommand {
 
         let color = if is_ok { Color::FOOYOO } else { Color::RED };
 
-        Ok(CreateInteractionResponse::Message(
-            CreateInteractionResponseMessage::new()
-                .embed(CreateEmbed::new().color(color).description(content)),
-        ))
+        interaction
+            .create_response(
+                &state.serenity_http,
+                CreateInteractionResponse::Message(
+                    CreateInteractionResponseMessage::new()
+                        .embed(CreateEmbed::new().color(color).description(content)),
+                ),
+            )
+            .await
+            .map_err(Error::from)?;
+
+        Ok(())
     }
 
     fn register() -> CreateCommand {
