@@ -5,6 +5,7 @@ use serenity::all::{CommandInteraction, CreateCommand, CreateInteractionResponse
 use crate::{error::Error, AppState};
 
 mod ai;
+mod code;
 mod math;
 
 pub trait Command {
@@ -13,4 +14,5 @@ pub trait Command {
 }
 
 pub use ai::AiCommand;
+pub use code::CodeCommand;
 pub use math::MathCommand;
