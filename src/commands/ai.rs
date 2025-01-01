@@ -3,7 +3,8 @@ use std::sync::Arc;
 use crate::{
     error::Error,
     models::api::ai::{
-        GenerateTextMessage, GenerateTextMessageRole, GenerateTextRequest, GenerateTextResponse,
+        GenerateImageRequest, GenerateImageResponse, GenerateTextMessage, GenerateTextMessageRole,
+        GenerateTextRequest, GenerateTextResponse,
     },
     AppState,
 };
@@ -99,15 +100,6 @@ impl AiCommand {
             return Err(anyhow!("Failed to get prompt as string"));
         };
 
-        let req = GenerateTextRequest::new()
-            .model("llama-3-8b-instruct")
-            .add_message(GenerateTextMessage::new(
-                GenerateTextMessageRole::User,
-                prompt,
-            ));
-
-        println!("{}", json::to_string_pretty(&req).unwrap());
-
         let response = state
             .http_client
             .post("https://ai.nigga.church/v2/generate/text")
@@ -145,6 +137,38 @@ impl AiCommand {
         subcommand_options: &Vec<ResolvedOption<'_>>,
         state: Arc<AppState>,
     ) -> Result<(), crate::error::Error> {
+        let &ResolvedOption {
+            value: ResolvedValue::String(prompt),
+            ..
+        } = subcommand_options
+            .first()
+            .ok_or(anyhow!("Failed to get prompt"))?
+        else {
+            return Err(anyhow!("Failed to get prompt as string"));
+        };
+
+        let response = state
+            .http_client
+            .post("https://ai.nigga.church/v2/generate/image")
+            .header("Authorization", std::env::var("AI_TOKEN").unwrap())
+            .json(
+                &GenerateImageRequest::new()
+                    .source("codename-comet")
+                    .prompt(prompt),
+            )
+            .send()
+            .await?
+            .error_for_status()?;
+
+        let response = response.json::<GenerateImageResponse>().await?.image_url;
+
+        interaction
+            .create_followup(
+                &state.serenity_http,
+                CreateInteractionResponseFollowup::new().content(response),
+            )
+            .await?;
+
         Ok(())
     }
 }

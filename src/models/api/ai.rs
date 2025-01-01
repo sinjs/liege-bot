@@ -1,3 +1,4 @@
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -39,7 +40,7 @@ impl GenerateTextRequest {
         Self::default()
     }
 
-    pub fn model(mut self, model: &str) -> Self {
+    pub fn model(mut self, model: impl Into<String>) -> Self {
         self.model = model.into();
         self
     }
@@ -69,4 +70,34 @@ impl GenerateTextRequest {
 #[serde(rename_all = "camelCase")]
 pub struct GenerateTextResponse {
     pub response: Option<String>,
+}
+
+#[derive(Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateImageRequest {
+    source: String,
+    prompt: String,
+}
+
+impl GenerateImageRequest {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn source(mut self, source: impl Into<String>) -> Self {
+        self.source = source.into();
+        self
+    }
+
+    pub fn prompt(mut self, prompt: impl Into<String>) -> Self {
+        self.prompt = prompt.into();
+        self
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateImageResponse {
+    #[serde(rename = "imageURL")]
+    pub image_url: Url,
 }
