@@ -13,7 +13,7 @@ pub trait CommandHandler {
         interaction: CommandInteraction,
         state: Arc<AppState>,
     ) -> Result<(), Error>;
-    fn register_command() -> CreateCommand;
+    fn command() -> CreateCommand;
 }
 
 pub use ai::AiCommand;

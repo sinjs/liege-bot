@@ -10,8 +10,8 @@ pub enum CustomIdError {
 }
 
 pub struct CustomId {
-    id: String,
-    data: Vec<String>,
+    pub id: String,
+    pub data: Vec<String>,
 }
 
 impl CustomId {
@@ -20,6 +20,11 @@ impl CustomId {
             id: id.into(),
             data: vec![],
         }
+    }
+
+    pub fn data(mut self, data: Vec<String>) -> Self {
+        self.data = data;
+        self
     }
 
     pub fn add_data(mut self, data: impl Into<String>) -> Self {

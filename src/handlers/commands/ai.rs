@@ -54,7 +54,7 @@ impl CommandHandler for AiCommand {
         }
     }
 
-    fn register_command() -> CreateCommand {
+    fn command() -> CreateCommand {
         CreateCommand::new("ai")
             .description("Liege AI")
             .integration_types(vec![InstallationContext::Guild, InstallationContext::User])

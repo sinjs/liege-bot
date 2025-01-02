@@ -7,6 +7,8 @@ use anyhow::anyhow;
 use clap::Parser;
 use error::Error;
 use handlers::commands::CommandHandler;
+use handlers::modals::ModalHandler;
+use models::custom_id::CustomId;
 use reqwest::Client;
 use serenity::all::{ApplicationId, GuildId};
 use serenity::builder::*;
@@ -95,6 +97,46 @@ async fn handle_command(
     Ok(())
 }
 
+async fn handle_modal(
+    interaction: ModalInteraction,
+    state: Arc<AppState>,
+) -> Result<(), error::Error> {
+    let custom_id = CustomId::try_from(interaction.data.custom_id.clone())?;
+
+    let response = match custom_id.id.as_ref() {
+        "code" => {
+            handlers::modals::CodeModal::handle_modal(interaction.clone(), state.clone()).await
+        }
+        name => Err(anyhow!("Modal with ID '{}' not found", name)),
+    };
+
+    if let Err(error) = response {
+        eprintln!("Failed to handle modal: {}", error);
+
+        let error_message = format!("Failed to handle modal:\n```\n{}\n```", error);
+
+        if let Err(_) = interaction
+            .create_response(
+                &state.serenity_http,
+                CreateInteractionResponse::Message(
+                    CreateInteractionResponseMessage::new().content(&error_message),
+                ),
+            )
+            .await
+        {
+            interaction
+                .edit_response(
+                    &state.serenity_http,
+                    EditInteractionResponse::new().content(&error_message),
+                )
+                .await
+                .ok();
+        };
+    }
+
+    Ok(())
+}
+
 async fn handle_request(
     mut request: tiny_http::Request,
     state: Arc<AppState>,
@@ -139,9 +181,12 @@ async fn handle_request(
                         .unwrap(),
                 )
         }
-
         Interaction::Command(interaction) => {
             handle_command(interaction, state).await?;
+            tiny_http::Response::from_data(vec![]).with_status_code(202)
+        }
+        Interaction::Modal(interaction) => {
+            handle_modal(interaction, state).await?;
             tiny_http::Response::from_data(vec![]).with_status_code(202)
         }
         _ => return Ok(()),
@@ -187,9 +232,9 @@ async fn register_commands(guild_id: Option<String>) -> Result<(), Error> {
     )?);
 
     let commands = vec![
-        commands::MathCommand::register(),
-        commands::CodeCommand::register(),
-        commands::AiCommand::register(),
+        handlers::commands::MathCommand::command(),
+        handlers::commands::CodeCommand::command(),
+        handlers::commands::AiCommand::command(),
     ];
 
     match guild_id {

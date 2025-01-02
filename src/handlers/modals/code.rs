@@ -2,15 +2,12 @@ use std::sync::Arc;
 
 use anyhow::anyhow;
 use serenity::all::{
-    Color, CommandInteraction, CommandOptionType, CreateActionRow, CreateCommand,
-    CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInputText,
-    CreateInteractionResponse, CreateInteractionResponseFollowup, CreateModal, InputText,
-    InputTextStyle, InstallationContext, InteractionContext, ResolvedOption, ResolvedValue,
+    ActionRowComponent, Color, CreateActionRow, CreateEmbed, CreateEmbedFooter, CreateInputText,
+    CreateInteractionResponseFollowup, CreateModal, InputText, InputTextStyle, ModalInteraction,
 };
 
 use crate::{
     error::Error,
-    handlers::modals::{CodeModal, ModalHandler},
     models::{
         api::code::{ExecuteFile, ExecuteRequest, ExecuteResponse},
         custom_id::CustomId,
@@ -18,40 +15,33 @@ use crate::{
     AppState,
 };
 
-use super::CommandHandler;
+use super::ModalHandler;
 
-pub struct CodeCommand;
+pub struct CodeModal;
 
-impl CommandHandler for CodeCommand {
-    async fn handle_command(
-        interaction: CommandInteraction,
+impl ModalHandler for CodeModal {
+    async fn handle_modal(
+        interaction: ModalInteraction,
         state: Arc<AppState>,
     ) -> Result<(), Error> {
-        let options = interaction.data.options();
+        let language = CustomId::try_from(interaction.data.custom_id.clone())?
+            .data
+            .first()
+            .ok_or(anyhow!("Failed to get language from custom id"))?
+            .clone();
 
-        let &ResolvedOption {
-            value: ResolvedValue::String(language),
-            ..
-        } = options.get(0).ok_or(anyhow!("Failed to get language"))?
+        let ActionRowComponent::InputText(InputText {
+            value: Some(code), ..
+        }) = interaction
+            .data
+            .components
+            .first()
+            .ok_or(anyhow!("Failed to get code action row"))?
+            .components
+            .first()
+            .ok_or(anyhow!("Failed to get code component"))?
         else {
-            return Err(anyhow!("Failed to get language value as string"));
-        };
-
-        let Some(&ResolvedOption {
-            value: ResolvedValue::String(code),
-            ..
-        }) = options.get(1)
-        else {
-            let modal = CodeModal::modal(Some(vec![language.to_string()]));
-
-            interaction
-                .create_response(
-                    &state.serenity_http,
-                    CreateInteractionResponse::Modal(modal),
-                )
-                .await?;
-
-            return Ok(());
+            return Err(anyhow!("Failed to get code input"));
         };
 
         interaction.defer(&state.serenity_http).await?;
@@ -128,29 +118,17 @@ impl CommandHandler for CodeCommand {
         Ok(())
     }
 
-    fn command() -> CreateCommand {
-        CreateCommand::new("code")
-            .description("Execute code")
-            .integration_types(vec![InstallationContext::Guild, InstallationContext::User])
-            .contexts(vec![
-                InteractionContext::Guild,
-                InteractionContext::BotDm,
-                InteractionContext::PrivateChannel,
-            ])
-            .add_option(
-                CreateCommandOption::new(
-                    CommandOptionType::String,
-                    "language",
-                    "Programming language to use",
-                )
-                .required(true)
-                .add_string_choice("JavaScript", "js")
-                .add_string_choice("Rust", "rust")
-                .add_string_choice("Python", "python"),
-            )
-            .add_option(
-                CreateCommandOption::new(CommandOptionType::String, "code", "The code to execute")
-                    .required(false),
-            )
+    /// `data` is required for this modal.
+    fn modal(data: Option<Vec<String>>) -> CreateModal {
+        CreateModal::new(
+            CustomId::new("code")
+                .data(data.unwrap())
+                .try_to_string()
+                .unwrap(),
+            "Execute Code",
+        )
+        .components(vec![CreateActionRow::InputText(
+            CreateInputText::new(InputTextStyle::Paragraph, "Code", "code").required(true),
+        )])
     }
 }

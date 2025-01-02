@@ -15,7 +15,10 @@ use super::CommandHandler;
 pub struct MathCommand;
 
 impl CommandHandler for MathCommand {
-    async fn handle_command(interaction: CommandInteraction, state: Arc<AppState>) -> Result<(), Error> {
+    async fn handle_command(
+        interaction: CommandInteraction,
+        state: Arc<AppState>,
+    ) -> Result<(), Error> {
         let options = interaction.data.options();
 
         let &ResolvedOption {
@@ -56,7 +59,7 @@ impl CommandHandler for MathCommand {
         Ok(())
     }
 
-    fn register_command() -> CreateCommand {
+    fn command() -> CreateCommand {
         CreateCommand::new("math")
             .description("Evaluate a math expression")
             .integration_types(vec![InstallationContext::Guild, InstallationContext::User])
