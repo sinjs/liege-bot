@@ -14,6 +14,28 @@ pub struct CustomId {
     data: Vec<String>,
 }
 
+impl CustomId {
+    pub fn new(id: impl Into<String>) -> Self {
+        Self {
+            id: id.into(),
+            data: vec![],
+        }
+    }
+
+    pub fn add_data(mut self, data: impl Into<String>) -> Self {
+        self.data.push(data.into());
+        self
+    }
+
+    pub fn matches(&self, id: impl Into<String>) -> bool {
+        self.id == id.into()
+    }
+
+    pub fn try_to_string(self) -> Result<String, CustomIdError> {
+        self.try_into()
+    }
+}
+
 impl TryFrom<String> for CustomId {
     type Error = CustomIdError;
 
