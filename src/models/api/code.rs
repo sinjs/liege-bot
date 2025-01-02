@@ -110,3 +110,20 @@ impl ExecuteRequest {
         self
     }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct ExecuteStage {
+    pub stdout: String,
+    pub stderr: String,
+    pub output: String,
+    pub code: Option<isize>,
+    pub signal: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ExecuteResponse {
+    pub language: String,
+    pub version: String,
+    pub run: ExecuteStage,
+    pub compile: Option<ExecuteStage>,
+}
