@@ -27,6 +27,7 @@ impl ExecuteFile {
 
     pub fn name(mut self, name: impl Into<String>) -> Self {
         self.name = Some(name.into());
+        self
     }
 
     pub fn content(mut self, content: impl Into<String>) -> Self {
