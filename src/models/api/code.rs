@@ -3,14 +3,14 @@ use serde_with::skip_serializing_none;
 
 #[derive(Serialize, Deserialize)]
 #[skip_serializing_none]
-pub struct Runtime {
+pub struct Language {
     pub language: String,
     pub version: String,
     pub aliases: Vec<String>,
     pub runtime: Option<String>,
 }
 
-pub type RuntimesResponse = Vec<Runtime>;
+pub type LanguagesResponse = Vec<Language>;
 
 #[derive(Serialize, Deserialize, Default)]
 #[skip_serializing_none]
