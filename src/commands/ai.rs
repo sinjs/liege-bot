@@ -17,7 +17,8 @@ use serenity::{
     all::{
         CommandInteraction, CommandOptionType, CreateCommand, CreateCommandOption,
         CreateInteractionResponse, CreateInteractionResponseFollowup,
-        CreateInteractionResponseMessage, EditInteractionResponse, ResolvedOption, ResolvedValue,
+        CreateInteractionResponseMessage, EditInteractionResponse, InstallationContext,
+        InteractionContext, ResolvedOption, ResolvedValue,
     },
     json,
 };
@@ -55,6 +56,13 @@ impl Command for AiCommand {
 
     fn register() -> CreateCommand {
         CreateCommand::new("ai")
+            .description("Liege AI")
+            .integration_types(vec![InstallationContext::Guild, InstallationContext::User])
+            .contexts(vec![
+                InteractionContext::Guild,
+                InteractionContext::BotDm,
+                InteractionContext::PrivateChannel,
+            ])
             .add_option(
                 CreateCommandOption::new(CommandOptionType::SubCommand, "text", "Chat with Liege")
                     .add_sub_option(

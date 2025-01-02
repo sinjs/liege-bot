@@ -3,7 +3,8 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use serenity::all::{
     Color, CommandInteraction, CommandOptionType, CreateCommand, CreateCommandOption, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, ResolvedOption, ResolvedValue,
+    CreateInteractionResponse, CreateInteractionResponseMessage, InstallationContext, Interaction,
+    InteractionContext, ResolvedOption, ResolvedValue,
 };
 use tokio::sync::Mutex;
 
@@ -58,6 +59,12 @@ impl Command for MathCommand {
     fn register() -> CreateCommand {
         CreateCommand::new("math")
             .description("Evaluate a math expression")
+            .integration_types(vec![InstallationContext::Guild, InstallationContext::User])
+            .contexts(vec![
+                InteractionContext::Guild,
+                InteractionContext::BotDm,
+                InteractionContext::PrivateChannel,
+            ])
             .add_option(CreateCommandOption::new(
                 CommandOptionType::String,
                 "expression",
