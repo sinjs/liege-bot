@@ -21,22 +21,21 @@ pub struct ExecuteFile {
 }
 
 impl ExecuteFile {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn name(mut self, name: String) -> Self {
-        self.name = Some(name);
+    pub fn name(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(name.into());
+    }
+
+    pub fn content(mut self, content: impl Into<String>) -> Self {
+        self.content = content.into();
         self
     }
 
-    pub fn content(mut self, content: String) -> Self {
-        self.content = content;
-        self
-    }
-
-    pub fn encoding(mut self, encoding: String) -> Self {
-        self.encoding = Some(encoding);
+    pub fn encoding(mut self, encoding: impl Into<String>) -> Self {
+        self.encoding = Some(encoding.into());
         self
     }
 }
