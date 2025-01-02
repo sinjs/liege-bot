@@ -1,18 +1,20 @@
+use std::collections::HashMap;
 use std::env;
 use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::anyhow;
+use clap::Parser;
 use commands::Command;
 use error::Error;
 use reqwest::Client;
-use serenity::all::ApplicationId;
+use serenity::all::{ApplicationId, GuildId};
 use serenity::builder::*;
 use serenity::interactions_endpoint::Verifier;
 use serenity::json;
 use serenity::model::application::*;
-use tokio::sync::Mutex;
 
+mod args;
 mod commands;
 mod error;
 mod models;
@@ -141,10 +143,7 @@ async fn handle_request(
     Ok(())
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Error> {
-    dotenv::dotenv().ok();
-
+async fn run() -> Result<(), Error> {
     let state = Arc::new(AppState::default());
 
     // Setup an HTTP server and listen for incoming interaction requests
@@ -166,5 +165,51 @@ async fn main() -> Result<(), Error> {
                 }
             });
         }
+    }
+}
+
+async fn register_commands(guild_id: Option<String>) -> Result<(), Error> {
+    let http = serenity::http::Http::new(
+        &env::var("DISCORD_TOKEN").expect("Missing DISCORD_TOKEN environment variable"),
+    );
+
+    http.set_application_id(ApplicationId::from_str(
+        &env::var("DISCORD_APP_ID").expect("Missing DISCORD_APP_ID environment variable"),
+    )?);
+
+    let commands = vec![
+        commands::MathCommand::register(),
+        commands::CodeCommand::register(),
+        commands::AiCommand::register(),
+    ];
+
+    match guild_id {
+        Some(guild_id) => {
+            let guild_id = GuildId::from_str(&guild_id)?;
+            println!(
+                "Registering {} commands for guild {}",
+                commands.len(),
+                guild_id
+            );
+            guild_id.set_commands(&http, commands).await?;
+        }
+        None => {
+            println!("Registering {} global commands", commands.len());
+            serenity::all::Command::set_global_commands(&http, commands).await?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Error> {
+    dotenv::dotenv().ok();
+
+    let args = args::Cli::parse();
+
+    match args.command() {
+        args::Command::Run => run().await,
+        args::Command::RegisterCommands { guild_id } => register_commands(guild_id).await,
     }
 }
