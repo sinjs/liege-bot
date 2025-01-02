@@ -10,12 +10,12 @@ use tokio::sync::Mutex;
 
 use crate::{error::Error, AppState};
 
-use super::Command;
+use super::CommandHandler;
 
 pub struct MathCommand;
 
-impl Command for MathCommand {
-    async fn run(interaction: CommandInteraction, state: Arc<AppState>) -> Result<(), Error> {
+impl CommandHandler for MathCommand {
+    async fn handle_command(interaction: CommandInteraction, state: Arc<AppState>) -> Result<(), Error> {
         let options = interaction.data.options();
 
         let &ResolvedOption {
@@ -56,7 +56,7 @@ impl Command for MathCommand {
         Ok(())
     }
 
-    fn register() -> CreateCommand {
+    fn register_command() -> CreateCommand {
         CreateCommand::new("math")
             .description("Evaluate a math expression")
             .integration_types(vec![InstallationContext::Guild, InstallationContext::User])

@@ -9,7 +9,7 @@ use crate::{
     AppState,
 };
 
-use super::Command;
+use super::CommandHandler;
 
 use anyhow::anyhow;
 use reqwest::Method;
@@ -26,8 +26,8 @@ use tokio::sync::Mutex;
 
 pub struct AiCommand;
 
-impl Command for AiCommand {
-    async fn run(
+impl CommandHandler for AiCommand {
+    async fn handle_command(
         interaction: CommandInteraction,
         state: Arc<AppState>,
     ) -> Result<(), crate::error::Error> {
@@ -54,7 +54,7 @@ impl Command for AiCommand {
         }
     }
 
-    fn register() -> CreateCommand {
+    fn register_command() -> CreateCommand {
         CreateCommand::new("ai")
             .description("Liege AI")
             .integration_types(vec![InstallationContext::Guild, InstallationContext::User])

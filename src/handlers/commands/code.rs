@@ -17,12 +17,12 @@ use crate::{
     AppState,
 };
 
-use super::Command;
+use super::CommandHandler;
 
 pub struct CodeCommand;
 
-impl Command for CodeCommand {
-    async fn run(interaction: CommandInteraction, state: Arc<AppState>) -> Result<(), Error> {
+impl CommandHandler for CodeCommand {
+    async fn handle_command(interaction: CommandInteraction, state: Arc<AppState>) -> Result<(), Error> {
         let options = interaction.data.options();
 
         let &ResolvedOption {
@@ -132,7 +132,7 @@ impl Command for CodeCommand {
         Ok(())
     }
 
-    fn register() -> CreateCommand {
+    fn register_command() -> CreateCommand {
         CreateCommand::new("code")
             .description("Execute code")
             .integration_types(vec![InstallationContext::Guild, InstallationContext::User])

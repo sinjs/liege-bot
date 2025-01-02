@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 use anyhow::anyhow;
 use clap::Parser;
-use commands::Command;
 use error::Error;
+use handlers::commands::CommandHandler;
 use reqwest::Client;
 use serenity::all::{ApplicationId, GuildId};
 use serenity::builder::*;
@@ -15,8 +15,8 @@ use serenity::json;
 use serenity::model::application::*;
 
 mod args;
-mod commands;
 mod error;
+mod handlers;
 mod models;
 
 pub struct AppState {
@@ -54,9 +54,17 @@ async fn handle_command(
     state: Arc<AppState>,
 ) -> Result<(), error::Error> {
     let response = match interaction.data.name.as_str() {
-        "math" => commands::MathCommand::run(interaction.clone(), state.clone()).await,
-        "ai" => commands::AiCommand::run(interaction.clone(), state.clone()).await,
-        "code" => commands::CodeCommand::run(interaction.clone(), state.clone()).await,
+        "math" => {
+            handlers::commands::MathCommand::handle_command(interaction.clone(), state.clone())
+                .await
+        }
+        "ai" => {
+            handlers::commands::AiCommand::handle_command(interaction.clone(), state.clone()).await
+        }
+        "code" => {
+            handlers::commands::CodeCommand::handle_command(interaction.clone(), state.clone())
+                .await
+        }
         name => Err(anyhow!("Command with name '{}' not found", name)),
     };
 
