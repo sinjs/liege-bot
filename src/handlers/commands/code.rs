@@ -145,6 +145,8 @@ impl CommandHandler for CodeCommand {
                 )
                 .required(true)
                 .add_string_choice("JavaScript", "js")
+                .add_string_choice("C++", "cpp")
+                .add_string_choice("Shell (bash)", "bash")
                 .add_string_choice("Rust", "rust")
                 .add_string_choice("Python", "python"),
             )
