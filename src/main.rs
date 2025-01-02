@@ -56,6 +56,7 @@ async fn handle_command(
     let response = match interaction.data.name.as_str() {
         "math" => commands::MathCommand::run(interaction.clone(), state.clone()).await,
         "ai" => commands::AiCommand::run(interaction.clone(), state.clone()).await,
+        "code" => commands::CodeCommand::run(interaction.clone(), state.clone()).await,
         name => Err(anyhow!("Command with name '{}' not found", name)),
     };
 
