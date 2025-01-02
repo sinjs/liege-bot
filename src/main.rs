@@ -9,12 +9,15 @@ use error::Error;
 use handlers::commands::CommandHandler;
 use handlers::modals::ModalHandler;
 use models::custom_id::CustomId;
-use reqwest::Client;
+use models::token::{DiscordTokenResponse, TokenRequest};
+use reqwest::{Client, Url};
 use serenity::all::{ApplicationId, GuildId};
 use serenity::builder::*;
 use serenity::interactions_endpoint::Verifier;
 use serenity::json;
 use serenity::model::application::*;
+use tiny_http::{Header, Response};
+use url::form_urlencoded;
 
 mod args;
 mod error;
@@ -137,13 +140,11 @@ async fn handle_modal(
     Ok(())
 }
 
-async fn handle_request(
+async fn handle_interaction_request(
     mut request: tiny_http::Request,
     state: Arc<AppState>,
 ) -> Result<(), Error> {
     let mut body = Vec::new();
-
-    println!("Received request from {:?}", request.remote_addr());
 
     // Read the request body (containing the interaction JSON)
     request.as_reader().read_to_end(&mut body)?;
@@ -195,6 +196,54 @@ async fn handle_request(
     request.respond(response)?;
 
     Ok(())
+}
+
+async fn handle_not_found(request: tiny_http::Request, _state: Arc<AppState>) -> Result<(), Error> {
+    request.respond(Response::from_string("Not Found").with_status_code(404))?;
+
+    Ok(())
+}
+
+async fn handle_token(mut request: tiny_http::Request, state: Arc<AppState>) -> Result<(), Error> {
+    let mut body = Vec::new();
+    request.as_reader().read_to_end(&mut body)?;
+
+    let client_id = env::var("DISCORD_APP_ID").unwrap();
+    let client_secret = env::var("DISCORD_CLIENT_SECRET").unwrap();
+
+    let body = json::from_slice::<TokenRequest>(&body)?;
+
+    let mut form: HashMap<&str, &str> = HashMap::new();
+    form.insert("client_id", &client_id);
+    form.insert("client_secret", &client_secret);
+    form.insert("grant_type", "authorization_code");
+    form.insert("code", &body.code);
+
+    let response = state
+        .http_client
+        .post("https://discord.com/api/oauth2/token")
+        .header("Content-Type", "application/x-www-form-urlencoded")
+        .form(&form)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<DiscordTokenResponse>()
+        .await?;
+
+    request.respond(
+        Response::from_string(&json::to_string(&response)?)
+            .with_header(Header::from_str("Content-Type: application/json").unwrap()),
+    )?;
+
+    Ok(())
+}
+
+async fn handle_request(request: tiny_http::Request, state: Arc<AppState>) -> Result<(), Error> {
+    match request.url() {
+        "/interactions" => handle_interaction_request(request, state).await,
+        "/token" => handle_token(request, state).await,
+        _ => handle_not_found(request, state).await,
+    }
 }
 
 async fn run() -> Result<(), Error> {
