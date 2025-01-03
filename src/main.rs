@@ -17,7 +17,6 @@ use serenity::interactions_endpoint::Verifier;
 use serenity::json;
 use serenity::model::application::*;
 use tiny_http::{Header, Response};
-use url::form_urlencoded;
 
 mod args;
 mod error;
