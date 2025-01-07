@@ -12,11 +12,15 @@ jobs:
     steps:
       - name: Install toolchain
         uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
       - uses: actions/checkout@v3
         with:
           submodules: recursive
       - name: Check formatting
-        run: rustup component add rustfmt && cargo fmt --check
+        run: cargo fmt --check
       - name: Check linter
         run: cargo check
   docker-build:
