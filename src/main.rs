@@ -54,40 +54,6 @@ impl Default for AppState {
     }
 }
 
-/* async fn handle_token(mut request: tiny_http::Request, state: Arc<AppState>) -> Result<(), Error> {
-    let mut body = Vec::new();
-    request.as_reader().read_to_end(&mut body)?;
-
-    let client_id = env::var("DISCORD_APP_ID").unwrap();
-    let client_secret = env::var("DISCORD_CLIENT_SECRET").unwrap();
-
-    let body = json::from_slice::<TokenRequest>(&body)?;
-
-    let mut form: HashMap<&str, &str> = HashMap::new();
-    form.insert("client_id", &client_id);
-    form.insert("client_secret", &client_secret);
-    form.insert("grant_type", "authorization_code");
-    form.insert("code", &body.code);
-
-    let response = state
-        .http_client
-        .post("https://discord.com/api/oauth2/token")
-        .header("Content-Type", "application/x-www-form-urlencoded")
-        .form(&form)
-        .send()
-        .await?
-        .error_for_status()?
-        .json::<DiscordTokenResponse>()
-        .await?;
-
-    request.respond(
-        Response::from_string(&json::to_string(&response)?)
-            .with_header(Header::from_str("Content-Type: application/json").unwrap()),
-    )?;
-
-    Ok(())
-}
- */
 async fn run() -> Result<(), Error> {
     let state = Arc::new(AppState::default());
     let app = axum::Router::new()
