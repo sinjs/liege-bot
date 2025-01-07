@@ -9,8 +9,8 @@ use axum::{
     Json,
 };
 use serenity::all::{
-    CommandInteraction, CreateInteractionResponse, CreateInteractionResponseMessage,
-    EditInteractionResponse, Interaction,
+    CreateInteractionResponse, CreateInteractionResponseMessage, EditInteractionResponse,
+    Interaction,
 };
 
 use crate::{error::Error, handlers, AppState};

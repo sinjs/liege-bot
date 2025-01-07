@@ -3,10 +3,9 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use serenity::all::{
     Color, CommandInteraction, CommandOptionType, CreateCommand, CreateCommandOption, CreateEmbed,
-    CreateInteractionResponse, CreateInteractionResponseMessage, InstallationContext, Interaction,
+    CreateInteractionResponse, CreateInteractionResponseMessage, InstallationContext,
     InteractionContext, ResolvedOption, ResolvedValue,
 };
-use tokio::sync::Mutex;
 
 use crate::{error::Error, AppState};
 

@@ -1,22 +1,14 @@
-use std::collections::HashMap;
 use std::env;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use anyhow::anyhow;
-use axum::routing::{get, post};
+use axum::routing::post;
 use clap::Parser;
 use error::Error;
 use handlers::commands::CommandHandler;
-use handlers::modals::ModalHandler;
-use models::custom_id::CustomId;
-use models::token::{DiscordTokenResponse, TokenRequest};
-use reqwest::{Client, Url};
+use reqwest::Client;
 use serenity::all::{ApplicationId, GuildId};
-use serenity::builder::*;
 use serenity::interactions_endpoint::Verifier;
-use serenity::json;
-use serenity::model::application::*;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 mod args;
 mod controllers;

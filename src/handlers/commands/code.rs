@@ -1,24 +1,16 @@
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use serenity::{
-    all::{
-        Color, CommandInteraction, CommandOptionType, CreateActionRow, CreateCommand,
-        CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInputText,
-        CreateInteractionResponse, CreateInteractionResponseFollowup,
-        CreateInteractionResponseMessage, CreateModal, InputText, InputTextStyle,
-        InstallationContext, InteractionContext, ResolvedOption, ResolvedValue,
-    },
-    FutureExt,
+use serenity::all::{
+    Color, CommandInteraction, CommandOptionType, CreateCommand, CreateCommandOption, CreateEmbed,
+    CreateEmbedFooter, CreateInteractionResponse, CreateInteractionResponseFollowup,
+    InstallationContext, InteractionContext, ResolvedOption, ResolvedValue,
 };
 
 use crate::{
     error::Error,
     handlers::modals::{CodeModal, ModalHandler},
-    models::{
-        api::code::{ExecuteFile, ExecuteRequest, ExecuteResponse},
-        custom_id::CustomId,
-    },
+    models::api::code::{ExecuteFile, ExecuteRequest, ExecuteResponse},
     AppState,
 };
 

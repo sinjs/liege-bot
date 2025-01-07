@@ -12,17 +12,11 @@ use crate::{
 use super::CommandHandler;
 
 use anyhow::anyhow;
-use reqwest::Method;
-use serenity::{
-    all::{
-        CommandInteraction, CommandOptionType, CreateCommand, CreateCommandOption,
-        CreateInteractionResponse, CreateInteractionResponseFollowup,
-        CreateInteractionResponseMessage, EditInteractionResponse, InstallationContext,
-        InteractionContext, ResolvedOption, ResolvedValue,
-    },
-    json,
+use serenity::all::{
+    CommandInteraction, CommandOptionType, CreateCommand, CreateCommandOption,
+    CreateInteractionResponseFollowup, InstallationContext, InteractionContext, ResolvedOption,
+    ResolvedValue,
 };
-use tokio::sync::Mutex;
 
 pub struct AiCommand;
 

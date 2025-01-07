@@ -1,5 +1,3 @@
-use anyhow::anyhow;
-
 #[derive(thiserror::Error, Debug)]
 pub enum CustomIdError {
     #[error("failed to parse custom id")]
