@@ -4,6 +4,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::anyhow;
+use axum::routing::{get, post};
 use clap::Parser;
 use error::Error;
 use handlers::commands::CommandHandler;
@@ -16,9 +17,9 @@ use serenity::builder::*;
 use serenity::interactions_endpoint::Verifier;
 use serenity::json;
 use serenity::model::application::*;
-use tiny_http::{Header, Response};
-
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 mod args;
+mod controllers;
 mod error;
 mod handlers;
 mod models;
@@ -53,157 +54,7 @@ impl Default for AppState {
     }
 }
 
-async fn handle_command(
-    interaction: CommandInteraction,
-    state: Arc<AppState>,
-) -> Result<(), error::Error> {
-    let response = match interaction.data.name.as_str() {
-        "math" => {
-            handlers::commands::MathCommand::handle_command(interaction.clone(), state.clone())
-                .await
-        }
-        "ai" => {
-            handlers::commands::AiCommand::handle_command(interaction.clone(), state.clone()).await
-        }
-        "code" => {
-            handlers::commands::CodeCommand::handle_command(interaction.clone(), state.clone())
-                .await
-        }
-        name => Err(anyhow!("Command with name '{}' not found", name)),
-    };
-
-    if let Err(error) = response {
-        eprintln!("Failed to handle command: {}", error);
-
-        let error_message = format!("Failed to execute the command:\n```\n{}\n```", error);
-
-        if let Err(_) = interaction
-            .create_response(
-                &state.serenity_http,
-                CreateInteractionResponse::Message(
-                    CreateInteractionResponseMessage::new().content(&error_message),
-                ),
-            )
-            .await
-        {
-            interaction
-                .edit_response(
-                    &state.serenity_http,
-                    EditInteractionResponse::new().content(&error_message),
-                )
-                .await
-                .ok();
-        };
-    }
-
-    Ok(())
-}
-
-async fn handle_modal(
-    interaction: ModalInteraction,
-    state: Arc<AppState>,
-) -> Result<(), error::Error> {
-    let custom_id = CustomId::try_from(interaction.data.custom_id.clone())?;
-
-    let response = match custom_id.id.as_ref() {
-        "code" => {
-            handlers::modals::CodeModal::handle_modal(interaction.clone(), state.clone()).await
-        }
-        name => Err(anyhow!("Modal with ID '{}' not found", name)),
-    };
-
-    if let Err(error) = response {
-        eprintln!("Failed to handle modal: {}", error);
-
-        let error_message = format!("Failed to handle modal:\n```\n{}\n```", error);
-
-        if let Err(_) = interaction
-            .create_response(
-                &state.serenity_http,
-                CreateInteractionResponse::Message(
-                    CreateInteractionResponseMessage::new().content(&error_message),
-                ),
-            )
-            .await
-        {
-            interaction
-                .edit_response(
-                    &state.serenity_http,
-                    EditInteractionResponse::new().content(&error_message),
-                )
-                .await
-                .ok();
-        };
-    }
-
-    Ok(())
-}
-
-async fn handle_interaction_request(
-    mut request: tiny_http::Request,
-    state: Arc<AppState>,
-) -> Result<(), Error> {
-    let mut body = Vec::new();
-
-    // Read the request body (containing the interaction JSON)
-    request.as_reader().read_to_end(&mut body)?;
-
-    {
-        // Reject request if it fails cryptographic verification
-        let find_header = |name| {
-            Some(
-                request
-                    .headers()
-                    .iter()
-                    .find(|h| h.field.equiv(name))?
-                    .value
-                    .as_str(),
-            )
-        };
-        let signature =
-            find_header("X-Signature-Ed25519").ok_or(anyhow!("missing signature header"))?;
-        let timestamp =
-            find_header("X-Signature-Timestamp").ok_or(anyhow!("missing timestamp header"))?;
-        if state.verifier.verify(signature, timestamp, &body).is_err() {
-            request.respond(tiny_http::Response::empty(401))?;
-            return Ok(());
-        }
-    }
-
-    // Build Discord response
-    let response = match json::from_slice::<Interaction>(&body)? {
-        // Discord rejects the interaction endpoints URL if pings are not acknowledged
-        Interaction::Ping(_) => {
-            tiny_http::Response::from_data(json::to_vec(&CreateInteractionResponse::Pong)?)
-                .with_header(
-                    "Content-Type: application/json"
-                        .parse::<tiny_http::Header>()
-                        .unwrap(),
-                )
-        }
-        Interaction::Command(interaction) => {
-            handle_command(interaction, state).await?;
-            tiny_http::Response::from_data(vec![]).with_status_code(202)
-        }
-        Interaction::Modal(interaction) => {
-            handle_modal(interaction, state).await?;
-            tiny_http::Response::from_data(vec![]).with_status_code(202)
-        }
-        _ => return Ok(()),
-    };
-
-    request.respond(response)?;
-
-    Ok(())
-}
-
-async fn handle_not_found(request: tiny_http::Request, _state: Arc<AppState>) -> Result<(), Error> {
-    request.respond(Response::from_string("Not Found").with_status_code(404))?;
-
-    Ok(())
-}
-
-async fn handle_token(mut request: tiny_http::Request, state: Arc<AppState>) -> Result<(), Error> {
+/* async fn handle_token(mut request: tiny_http::Request, state: Arc<AppState>) -> Result<(), Error> {
     let mut body = Vec::new();
     request.as_reader().read_to_end(&mut body)?;
 
@@ -236,38 +87,18 @@ async fn handle_token(mut request: tiny_http::Request, state: Arc<AppState>) -> 
 
     Ok(())
 }
-
-async fn handle_request(request: tiny_http::Request, state: Arc<AppState>) -> Result<(), Error> {
-    match request.url() {
-        "/interactions" => handle_interaction_request(request, state).await,
-        "/token" => handle_token(request, state).await,
-        _ => handle_not_found(request, state).await,
-    }
-}
-
+ */
 async fn run() -> Result<(), Error> {
     let state = Arc::new(AppState::default());
+    let app = axum::Router::new()
+        .route("/token", post(controllers::token::post))
+        .route("/interactions", post(controllers::interactions::post))
+        .with_state(state);
 
-    // Setup an HTTP server and listen for incoming interaction requests
-    let server = Arc::new(
-        tiny_http::Server::http("0.0.0.0:8787")
-            .map_err(|error| anyhow!("failed to create server: {}", error))?,
-    );
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8787").await?;
+    axum::serve(listener, app).await?;
 
-    loop {
-        let server = server.clone();
-        let state = state.clone();
-
-        if let Ok(request) = server.recv() {
-            println!("{:?}", &request);
-
-            tokio::spawn(async move {
-                if let Err(error) = handle_request(request, state).await {
-                    eprintln!("Failed to handle request: {}", error);
-                }
-            });
-        }
-    }
+    Ok(())
 }
 
 async fn register_commands(guild_id: Option<String>) -> Result<(), Error> {
@@ -307,6 +138,21 @@ async fn register_commands(guild_id: Option<String>) -> Result<(), Error> {
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     dotenv::dotenv().ok();
+
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                // axum logs rejections from built-in extractors with the `axum::rejection`
+                // target, at `TRACE` level. `axum::rejection=trace` enables showing those events
+                format!(
+                    "{}=debug,tower_http=debug,axum::rejection=trace",
+                    env!("CARGO_CRATE_NAME")
+                )
+                .into()
+            }),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
 
     let args = args::Cli::parse();
 

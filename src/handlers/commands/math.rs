@@ -56,6 +56,8 @@ impl CommandHandler for MathCommand {
             .await
             .map_err(Error::from)?;
 
+        println!("Passed Math");
+
         Ok(())
     }
 
