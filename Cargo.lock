@@ -1185,6 +1185,7 @@ dependencies = [
  "meval",
  "reqwest 0.12.11",
  "serde",
+ "serde_json",
  "serde_with",
  "serenity",
  "thiserror 2.0.9",
