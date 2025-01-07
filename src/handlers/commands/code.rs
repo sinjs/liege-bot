@@ -1,11 +1,15 @@
 use std::sync::Arc;
 
 use anyhow::anyhow;
-use serenity::all::{
-    Color, CommandInteraction, CommandOptionType, CreateActionRow, CreateCommand,
-    CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInputText,
-    CreateInteractionResponse, CreateInteractionResponseFollowup, CreateModal, InputText,
-    InputTextStyle, InstallationContext, InteractionContext, ResolvedOption, ResolvedValue,
+use serenity::{
+    all::{
+        Color, CommandInteraction, CommandOptionType, CreateActionRow, CreateCommand,
+        CreateCommandOption, CreateEmbed, CreateEmbedFooter, CreateInputText,
+        CreateInteractionResponse, CreateInteractionResponseFollowup,
+        CreateInteractionResponseMessage, CreateModal, InputText, InputTextStyle,
+        InstallationContext, InteractionContext, ResolvedOption, ResolvedValue,
+    },
+    FutureExt,
 };
 
 use crate::{

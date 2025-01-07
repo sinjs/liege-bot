@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'liege-bot'",
+      "program": "${workspaceRoot}/target/debug/${workspaceRootFolderName}",
+      "cargo": {
+        "args": ["build", "--bin=liege-bot", "--package=liege-bot"],
+        "filter": {
+          "name": "liege-bot",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}
