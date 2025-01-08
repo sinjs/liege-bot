@@ -6,19 +6,45 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use serenity::all::User;
 
 use crate::{
     error::Error,
-    models::token::{DiscordTokenResponse, TokenRequest},
+    models::auth::{Claims, DiscordTokenResponse, TokenRequest, TokenResponse},
     AppState,
 };
 
 #[axum::debug_handler]
 pub async fn post(State(state): State<Arc<AppState>>, Json(body): Json<TokenRequest>) -> Response {
-    match get_discord_oauth_token(&state, &body.code).await {
-        Ok(response) => (StatusCode::OK, Json(response)).into_response(),
-        Err(_error) => (StatusCode::INTERNAL_SERVER_ERROR, "failed to get token").into_response(),
-    }
+    let Ok(token_response) = get_discord_oauth_token(&state, &body.code).await else {
+        return (StatusCode::INTERNAL_SERVER_ERROR, "failed to get token").into_response();
+    };
+
+    let Ok(user) = get_user_from_token(&state, &token_response.access_token).await else {
+        return (StatusCode::INTERNAL_SERVER_ERROR, "failed to get user").into_response();
+    };
+
+    let claims = Claims::new(&user, &token_response);
+
+    let Ok(response) = TokenResponse::try_from(claims) else {
+        return (StatusCode::INTERNAL_SERVER_ERROR, "failed to create token").into_response();
+    };
+
+    (StatusCode::OK, Json(response)).into_response()
+}
+
+async fn get_user_from_token(state: &Arc<AppState>, token: &str) -> Result<User, Error> {
+    let response = state
+        .http_client
+        .get("https://discord.com/api/users/@me")
+        .bearer_auth(token)
+        .send()
+        .await?
+        .error_for_status()?
+        .json::<User>()
+        .await?;
+
+    Ok(response)
 }
 
 async fn get_discord_oauth_token(

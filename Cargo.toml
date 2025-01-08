@@ -24,3 +24,4 @@ clap = { version = "4.5.23", features = ["derive"] }
 thiserror = "2.0.9"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+jsonwebtoken = "9.3.0"
