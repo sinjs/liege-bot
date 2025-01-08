@@ -16,4 +16,4 @@ RUN apt-get update && apt-get install -y openssl
 WORKDIR /app
 COPY --from=builder /liege-bot /app/liege-bot
 EXPOSE 8787
-CMD ["/app/liege-bot"]
+ENTRYPOINT ["/app/liege-bot"]
