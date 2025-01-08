@@ -1,6 +1,16 @@
 use std::sync::LazyLock;
 
 use anyhow::Context;
+use axum::{
+    extract::FromRequestParts,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    RequestPartsExt,
+};
+use axum_extra::{
+    headers::{authorization::Bearer, Authorization},
+    TypedHeader,
+};
 use serde::{Deserialize, Serialize};
 use serenity::all::{User, UserId};
 
@@ -56,6 +66,10 @@ pub struct DiscordTokenResponse {
 pub struct Claims {
     pub sub: UserId,
     pub exp: usize,
+
+    pub username: String,
+    pub display_name: String,
+    pub avatar: String,
 }
 
 impl Claims {
@@ -63,7 +77,43 @@ impl Claims {
         Self {
             exp: token_response.expires_in,
             sub: user.id,
+            username: user.name.clone(),
+            avatar: user.avatar_url().unwrap_or(user.default_avatar_url()),
+            display_name: user.global_name.clone().unwrap_or(user.name.clone()),
         }
+    }
+
+    pub fn from_token(token: &str) -> Result<Self, crate::Error> {
+        let token_data = jsonwebtoken::decode::<Claims>(
+            token,
+            &KEYS.decoding,
+            &jsonwebtoken::Validation::default(),
+        )?;
+
+        Ok(token_data.claims)
+    }
+}
+
+impl<S> FromRequestParts<S> for Claims
+where
+    S: Send + Sync,
+{
+    type Rejection = Response;
+
+    async fn from_request_parts(
+        parts: &mut axum::http::request::Parts,
+        _state: &S,
+    ) -> Result<Self, Self::Rejection> {
+        let TypedHeader(Authorization(bearer)) = parts
+            .extract::<TypedHeader<Authorization<Bearer>>>()
+            .await
+            .map_err(|_| (StatusCode::UNAUTHORIZED, "missing token").into_response())?;
+
+        let claims = Claims::from_token(bearer.token()).map_err(|_| {
+            (StatusCode::UNAUTHORIZED, "token expired or invalidated").into_response()
+        })?;
+
+        Ok(claims)
     }
 }
 
