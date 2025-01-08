@@ -15,7 +15,7 @@ COPY . .
 RUN cargo build --release
 
 # Run stage
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 WORKDIR /app
 COPY --from=builder /app/target/release/liege-bot /app/liege-bot
