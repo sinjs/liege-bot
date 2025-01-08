@@ -11,7 +11,9 @@ RUN \
 
 # Run stage
 FROM debian:bookworm AS final
-RUN apt-get update && apt-get install -y openssl
+RUN apt-get update && \
+  apt-get install -y openssl ca-certificates && \
+  update-ca-certificates
 
 WORKDIR /app
 COPY --from=builder /liege-bot /app/liege-bot
