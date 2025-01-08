@@ -1,19 +1,26 @@
 use std::env;
+use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use axum::routing::post;
+use axum::routing::{get, post};
+use axum::Router;
 use clap::Parser;
 use error::Error;
 use handlers::commands::CommandHandler;
+use middleware::ratelimit::JwtKeyExtractor;
 use reqwest::Client;
 use serenity::all::{ApplicationId, GuildId};
 use serenity::interactions_endpoint::Verifier;
+use tower_governor::governor::GovernorConfigBuilder;
+use tower_governor::GovernorLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+
 mod args;
 mod controllers;
 mod error;
 mod handlers;
+mod middleware;
 mod models;
 
 pub struct AppState {
@@ -48,13 +55,49 @@ impl Default for AppState {
 
 async fn run() -> Result<(), Error> {
     let state = Arc::new(AppState::default());
-    let app = axum::Router::new()
-        .route("/token", post(controllers::token::post))
+
+    let ai_governor_config = Arc::new(
+        GovernorConfigBuilder::default()
+            .per_second(1)
+            .burst_size(8)
+            .key_extractor(JwtKeyExtractor)
+            .finish()
+            .unwrap(),
+    );
+    let auth_governor_config = Arc::new(
+        GovernorConfigBuilder::default()
+            .per_second(4)
+            .burst_size(2)
+            .key_extractor(JwtKeyExtractor)
+            .finish()
+            .unwrap(),
+    );
+
+    let ai_router = Router::new().layer(GovernorLayer {
+        config: ai_governor_config,
+    });
+
+    let auth_router = Router::new()
+        .route(
+            "/token",
+            get(controllers::token::get).post(controllers::token::post),
+        )
+        .layer(GovernorLayer {
+            config: auth_governor_config,
+        });
+
+    let app = Router::new()
         .route("/interactions", post(controllers::interactions::post))
+        .merge(ai_router)
+        .merge(auth_router)
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8787").await?;
-    axum::serve(listener, app).await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await?;
 
     Ok(())
 }

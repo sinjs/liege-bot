@@ -14,7 +14,6 @@ use crate::{
     AppState,
 };
 
-#[axum::debug_handler]
 pub async fn post(State(state): State<Arc<AppState>>, Json(body): Json<TokenRequest>) -> Response {
     let Ok(token_response) = get_discord_oauth_token(&state, &body.code).await else {
         return (StatusCode::INTERNAL_SERVER_ERROR, "failed to get token").into_response();
@@ -31,6 +30,10 @@ pub async fn post(State(state): State<Arc<AppState>>, Json(body): Json<TokenRequ
     };
 
     (StatusCode::OK, Json(response)).into_response()
+}
+
+pub async fn get(claims: Claims) -> Response {
+    (StatusCode::OK, Json(claims)).into_response()
 }
 
 async fn get_user_from_token(state: &Arc<AppState>, token: &str) -> Result<User, Error> {
