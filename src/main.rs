@@ -57,7 +57,7 @@ impl Default for AppState {
 async fn run() -> Result<(), Error> {
     let state = Arc::new(AppState::default());
 
-    let ai_governor_config = Arc::new(
+    let api_governor_config = Arc::new(
         GovernorConfigBuilder::default()
             .per_second(1)
             .burst_size(8)
@@ -74,10 +74,11 @@ async fn run() -> Result<(), Error> {
             .unwrap(),
     );
 
-    let ai_router = Router::new()
+    let api_router = Router::new()
         .route("/ai", get(controllers::ai::get))
+        .route("/code", post(controllers::code::post))
         .layer(GovernorLayer {
-            config: ai_governor_config,
+            config: api_governor_config,
         });
 
     let auth_router = Router::new()
@@ -91,7 +92,7 @@ async fn run() -> Result<(), Error> {
 
     let app = Router::new()
         .route("/interactions", post(controllers::interactions::post))
-        .merge(ai_router)
+        .merge(api_router)
         .merge(auth_router)
         .layer(CorsLayer::permissive())
         .with_state(state);
