@@ -41,14 +41,16 @@ pub struct TokenRequest {
 #[derive(Serialize, Deserialize)]
 pub struct TokenResponse {
     pub token: String,
+    pub discord_access_token: String,
     pub token_type: String,
 }
 
 impl TokenResponse {
-    pub fn new(token: impl Into<String>) -> Self {
+    pub fn new(token: impl Into<String>, discord_access_token: impl Into<String>) -> Self {
         Self {
             token: token.into(),
             token_type: String::from("Bearer"),
+            discord_access_token: discord_access_token.into(),
         }
     }
 }
@@ -70,6 +72,8 @@ pub struct Claims {
     pub username: String,
     pub display_name: String,
     pub avatar: String,
+
+    pub discord_access_token: String,
 }
 
 impl Claims {
@@ -80,6 +84,7 @@ impl Claims {
             username: user.name.clone(),
             avatar: user.avatar_url().unwrap_or(user.default_avatar_url()),
             display_name: user.global_name.clone().unwrap_or(user.name.clone()),
+            discord_access_token: token_response.access_token.clone(),
         }
     }
 
@@ -124,6 +129,6 @@ impl TryFrom<Claims> for TokenResponse {
         let token = jsonwebtoken::encode(&jsonwebtoken::Header::default(), &value, &KEYS.encoding)
             .context("Failed to create token")?;
 
-        Ok(TokenResponse::new(token))
+        Ok(TokenResponse::new(token, value.discord_access_token))
     }
 }
