@@ -8,13 +8,12 @@ use axum::{
 };
 use axum_extra::extract::Query;
 use futures::{Stream, StreamExt};
-use reqwest::{RequestBuilder, Url};
+use reqwest::Url;
 use reqwest_eventsource::{
-    retry::{self, RetryPolicy},
+    retry::{self},
     RequestBuilderExt,
 };
 use serde::{Deserialize, Serialize};
-use tokio::stream;
 
 use crate::{
     error::Error,
