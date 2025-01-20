@@ -17,9 +17,12 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     error::Error,
-    models::api::ai::{
-        GenerateImageRequest, GenerateImageResponse, GenerateTextMessage, GenerateTextMessageRole,
-        GenerateTextRequest, GenerateTextStreamResponse,
+    models::{
+        api::ai::{
+            GenerateImageRequest, GenerateImageResponse, GenerateTextMessage,
+            GenerateTextMessageRole, GenerateTextRequest, GenerateTextStreamResponse,
+        },
+        auth::Claims,
     },
     AppState,
 };
@@ -51,7 +54,11 @@ pub enum AiEvent {
     Response(String),
 }
 
-pub async fn get(State(state): State<Arc<AppState>>, Query(body): Query<AiRequest>) -> Response {
+pub async fn get(
+    _claims: Claims,
+    State(state): State<Arc<AppState>>,
+    Query(body): Query<AiRequest>,
+) -> Response {
     match body.model_type {
         AiModelType::Image => match generate_image(&state.http_client, body.prompt).await {
             Ok(url) => (

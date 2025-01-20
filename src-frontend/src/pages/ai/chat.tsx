@@ -5,6 +5,8 @@ import { BotIcon, SendIcon, UserIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { createEventSource } from "eventsource-client";
+import { useAuth } from "@/hooks/use-auth";
 
 type ChatMessage = {
   sender: "user" | "bot";
@@ -46,6 +48,7 @@ export function AIChat() {
 
   const [sending, setSending] = useState(false);
   const [prompt, setPrompt] = useState("");
+  const { auth } = useAuth();
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -69,18 +72,20 @@ export function AIChat() {
     });
 
     try {
-      const eventSource = new EventSource(
-        `/.proxy/api/ai?${searchParams.toString()}`
-      );
+      const eventSource = createEventSource({
+        url: `/.proxy/api/ai?${searchParams.toString()}`,
+        headers: { Authorization: `Bearer ${auth?.token}` },
+      });
 
-      eventSource.addEventListener("message", (event) => {
-        const data: { type: "Done" } | { type: "Response"; data: string } =
-          JSON.parse(event.data);
+      for await (const { data } of eventSource) {
+        const parsedData:
+          | { type: "Done" }
+          | { type: "Response"; data: string } = JSON.parse(data);
 
         const message = getMessage(messageId);
         if (!message) throw new TypeError(`message ${messageId} is undefined`);
 
-        if (data.type === "Done") {
+        if (parsedData.type === "Done") {
           eventSource.close();
           setSending(false);
           setMessage(messageId, { ...message, state: "final" });
@@ -88,25 +93,11 @@ export function AIChat() {
         }
 
         setMessage(messageId, {
-          content: message.content + data.data,
+          content: message.content + parsedData.data,
           sender: "bot",
           state: "loading",
         });
-      });
-
-      eventSource.addEventListener("error", (event) => {
-        console.error("EventSource error event fired", event);
-        eventSource.close();
-        setSending(false);
-        const message = getMessage(messageId);
-        if (message) {
-          setMessage(messageId, {
-            ...message,
-            state: "error",
-            content: "Failed to receive data from the server",
-          });
-        }
-      });
+      }
     } catch (error) {
       console.error("Failed to send", error);
       const message = getMessage(messageId);

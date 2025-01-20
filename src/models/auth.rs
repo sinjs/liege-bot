@@ -59,7 +59,7 @@ impl TokenResponse {
 pub struct DiscordTokenResponse {
     pub access_token: String,
     pub token_type: String,
-    pub expires_in: usize,
+    pub expires_in: i64,
     pub refresh_token: String,
     pub scope: String,
 }
@@ -67,7 +67,7 @@ pub struct DiscordTokenResponse {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub sub: UserId,
-    pub exp: usize,
+    pub exp: i64,
 
     pub username: String,
     pub display_name: String,
@@ -79,7 +79,7 @@ pub struct Claims {
 impl Claims {
     pub fn new(user: &User, token_response: &DiscordTokenResponse) -> Self {
         Self {
-            exp: token_response.expires_in,
+            exp: token_response.expires_in + chrono::Utc::now().timestamp(),
             sub: user.id,
             username: user.name.clone(),
             avatar: user.avatar_url().unwrap_or(user.default_avatar_url()),
