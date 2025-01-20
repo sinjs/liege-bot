@@ -25,6 +25,10 @@ thiserror = "2.0.9"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 jsonwebtoken = "9.3.0"
-axum-extra = { version = "0.10.0", features = ["typed-header"] }
+axum-extra = { version = "0.10.0", features = ["typed-header", "query"] }
 tower_governor = "0.6.0"
 tower = "0.5.2"
+reqwest-eventsource = "0.6.0"
+futures = "0.3.5"
+tokio-stream = "0.1.17"
+tower-http = { version = "0.6.2", features = ["cors"] }
