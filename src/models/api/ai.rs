@@ -74,6 +74,12 @@ pub struct GenerateTextResponse {
     pub response: Option<String>,
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GenerateTextStreamResponse {
+    pub response: String,
+}
+
 #[derive(Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GenerateImageRequest {
