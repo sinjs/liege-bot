@@ -14,6 +14,7 @@ use serenity::all::{ApplicationId, GuildId};
 use serenity::interactions_endpoint::Verifier;
 use tower_governor::governor::GovernorConfigBuilder;
 use tower_governor::GovernorLayer;
+use tower_http::cors::CorsLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod args;
@@ -73,9 +74,11 @@ async fn run() -> Result<(), Error> {
             .unwrap(),
     );
 
-    let ai_router = Router::new().layer(GovernorLayer {
-        config: ai_governor_config,
-    });
+    let ai_router = Router::new()
+        .route("/ai", get(controllers::ai::get))
+        .layer(GovernorLayer {
+            config: ai_governor_config,
+        });
 
     let auth_router = Router::new()
         .route(
@@ -90,6 +93,7 @@ async fn run() -> Result<(), Error> {
         .route("/interactions", post(controllers::interactions::post))
         .merge(ai_router)
         .merge(auth_router)
+        .layer(CorsLayer::permissive())
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8787").await?;
