@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           cache: pnpm
+          cache-dependency-path: src-frontend
           node-version: 22
       - name: Install dependencies
         run: pnpm install
