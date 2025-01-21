@@ -5,7 +5,7 @@ on:
     branches: ["master"]
 defaults:
   run:
-    working-directory: ./src-frontend
+    working-directory: ./apps/frontend
 jobs:
   lint:
     name: Lint
@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           cache: pnpm
-          cache-dependency-path: src-frontend
+          cache-dependency-path: ./apps/frontend
           node-version: 22
       - name: Install dependencies
         run: pnpm install
@@ -55,8 +55,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./src-frontend
-          file: ./src-frontend/Dockerfile
+          context: ./apps/frontend
+          file: ./apps/frontend/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
