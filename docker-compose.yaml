@@ -1,0 +1,19 @@
+services:
+  backend:
+    image: ghcr.io/sinjs/liege-bot:master
+    environment:
+      - DISCORD_APP_ID=${DISCORD_APP_ID}
+      - DISCORD_PUBLIC_KEY=${DISCORD_PUBLIC_KEY}
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - CODE_TOKEN=${CODE_TOKEN}
+      - AI_TOKEN=${AI_TOKEN}
+  frontend:
+    image: ghcr.io/sinjs/liege-bot-frontend:master
+    environment:
+      - VITE_DISCORD_APP_ID=${VITE_DISCORD_APP_ID}
+  proxy:
+    image: nginx:latest
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8700:8700"
