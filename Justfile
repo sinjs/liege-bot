@@ -10,7 +10,7 @@ build-dev:
   docker compose -f docker-compose.dev.yaml build
 
 dev: build-dev
-  docker compose -f docker-compose.dev.yaml up -V
+  docker compose -f docker-compose.dev.yaml up -V --remove-orphans
 
 register-commands: build-dev
   docker compose -f docker-compose.dev.yaml run backend-dev cargo run register-commands
