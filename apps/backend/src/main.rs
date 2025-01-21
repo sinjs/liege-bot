@@ -91,6 +91,7 @@ async fn run() -> Result<(), Error> {
         });
 
     let app = Router::new()
+        .route("/config", get(controllers::config::get))
         .route("/interactions", post(controllers::interactions::post))
         .merge(api_router)
         .merge(auth_router)
@@ -103,6 +104,8 @@ async fn run() -> Result<(), Error> {
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
     .await?;
+
+    tracing::debug!("Listening on http://0.0.0.0:8787");
 
     Ok(())
 }

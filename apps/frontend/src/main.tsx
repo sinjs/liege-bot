@@ -16,6 +16,7 @@ import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import cssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
 import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+import { ConfigProvider } from "./components/config-provider.tsx";
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
@@ -43,9 +44,11 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary FallbackComponent={ErrorPage}>
       <ThemeProvider defaultTheme="dark" storageKey="ui-theme">
-        <AuthProvider fallback={<Loading message="Authenticating" />}>
-          <App />
-        </AuthProvider>
+        <ConfigProvider fallback={<Loading message="Configuring" />}>
+          <AuthProvider fallback={<Loading message="Authenticating" />}>
+            <App />
+          </AuthProvider>
+        </ConfigProvider>
       </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>

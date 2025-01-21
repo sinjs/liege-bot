@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 
 import { DiscordSDK } from "@discord/embedded-app-sdk";
 import { Auth, AuthContext } from "./auth-context";
+import { useConfig } from "@/hooks/use-config";
 
 export function AuthProvider({
   children,
@@ -10,10 +11,12 @@ export function AuthProvider({
   children: ReactNode;
   fallback?: ReactNode;
 }) {
+  const config = useConfig();
+
   console.log(import.meta.env);
   const discordSdk = useMemo(
-    () => new DiscordSDK(import.meta.env.VITE_DISCORD_APP_ID!),
-    []
+    () => new DiscordSDK(config.discordAppId),
+    [config.discordAppId]
   );
 
   const [auth, setAuth] = useState<Auth | null>(null);
@@ -23,7 +26,7 @@ export function AuthProvider({
       await discordSdk.ready();
 
       const { code } = await discordSdk.commands.authorize({
-        client_id: import.meta.env.VITE_DISCORD_APP_ID,
+        client_id: config.discordAppId,
         response_type: "code",
         state: "",
         prompt: "none",
@@ -53,7 +56,7 @@ export function AuthProvider({
     }
 
     initialize();
-  }, [discordSdk]);
+  }, [discordSdk, config.discordAppId]);
 
   return (
     <AuthContext.Provider value={{ auth, discordSdk }}>
