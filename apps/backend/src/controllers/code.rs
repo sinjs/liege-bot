@@ -8,7 +8,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{error::Error, models::api, AppState};
+use crate::{env::ENV, error::Error, models::api, AppState};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CodeRequest {
@@ -30,7 +30,7 @@ async fn execute_code(
 ) -> Result<api::code::ExecuteResponse, Error> {
     let response = http
         .post("https://v2-api.nigga.church/code/execute")
-        .header("Authorization", std::env::var("CODE_TOKEN").unwrap())
+        .header("Authorization", &ENV.code_token)
         .json(
             &api::code::ExecuteRequest::new()
                 .language(language)

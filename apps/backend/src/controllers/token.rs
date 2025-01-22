@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use axum::{
     extract::State,
@@ -9,6 +9,7 @@ use axum::{
 use serenity::all::User;
 
 use crate::{
+    env::ENV,
     error::Error,
     models::auth::{Claims, DiscordTokenResponse, TokenRequest, TokenResponse},
     AppState,
@@ -54,12 +55,9 @@ async fn get_discord_oauth_token(
     state: &Arc<AppState>,
     code: &str,
 ) -> Result<DiscordTokenResponse, Error> {
-    let client_id = env::var("DISCORD_APP_ID").unwrap();
-    let client_secret = env::var("DISCORD_CLIENT_SECRET").unwrap();
-
     let mut form: HashMap<&str, &str> = HashMap::new();
-    form.insert("client_id", &client_id);
-    form.insert("client_secret", &client_secret);
+    form.insert("client_id", &ENV.discord_app_id);
+    form.insert("client_secret", &ENV.discord_client_secret);
     form.insert("grant_type", "authorization_code");
     form.insert("code", &code);
 

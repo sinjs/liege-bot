@@ -16,6 +16,7 @@ use reqwest_eventsource::{
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    env::ENV,
     error::Error,
     models::{
         api::ai::{
@@ -90,7 +91,7 @@ async fn generate_text(
 ) -> Result<Sse<impl Stream<Item = Result<sse::Event, Infallible>>>, Error> {
     let mut event_source = http
         .post("https://ai.nigga.church/v2/generate/text")
-        .header("Authorization", std::env::var("AI_TOKEN").unwrap())
+        .header("Authorization", &ENV.ai_token)
         .json(
             &GenerateTextRequest::new()
                 .model("llama-3-8b-instruct")
@@ -141,7 +142,7 @@ async fn generate_text(
 async fn generate_image(http: &reqwest::Client, prompt: String) -> Result<Url, Error> {
     let response = http
         .post("https://ai.nigga.church/v2/generate/image")
-        .header("Authorization", std::env::var("AI_TOKEN").unwrap())
+        .header("Authorization", &ENV.ai_token)
         .json(
             &GenerateImageRequest::new()
                 .source("codename-comet")

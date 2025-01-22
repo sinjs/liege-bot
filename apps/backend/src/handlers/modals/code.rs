@@ -7,6 +7,7 @@ use serenity::all::{
 };
 
 use crate::{
+    env::ENV,
     error::Error,
     models::{
         api::code::{ExecuteFile, ExecuteRequest, ExecuteResponse},
@@ -49,7 +50,7 @@ impl ModalHandler for CodeModal {
         let response = state
             .http_client
             .post("https://v2-api.nigga.church/code/execute")
-            .header("Authorization", std::env::var("CODE_TOKEN").unwrap())
+            .header("Authorization", &ENV.code_token)
             .json(
                 &ExecuteRequest::new()
                     .language(language)

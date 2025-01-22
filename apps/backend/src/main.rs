@@ -1,4 +1,3 @@
-use std::env;
 use std::net::SocketAddr;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -6,6 +5,7 @@ use std::sync::Arc;
 use axum::routing::{get, post};
 use axum::Router;
 use clap::Parser;
+use env::ENV;
 use error::Error;
 use handlers::commands::CommandHandler;
 use middleware::ratelimit::JwtKeyExtractor;
@@ -19,6 +19,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod args;
 mod controllers;
+mod env;
 mod error;
 mod handlers;
 mod middleware;
@@ -33,21 +34,13 @@ pub struct AppState {
 impl Default for AppState {
     fn default() -> Self {
         let state = Self {
-            verifier: Verifier::new(
-                &env::var("DISCORD_PUBLIC_KEY")
-                    .expect("Missing DISCORD_PUBLIC_KEY environment variable"),
-            ),
+            verifier: Verifier::new(&ENV.discord_public_key),
             http_client: Client::default(),
-            serenity_http: serenity::http::Http::new(
-                &env::var("DISCORD_TOKEN").expect("Missing DISCORD_TOKEN environment variable"),
-            ),
+            serenity_http: serenity::http::Http::new(&ENV.discord_token),
         };
 
         state.serenity_http.set_application_id(
-            ApplicationId::from_str(
-                &env::var("DISCORD_APP_ID").expect("Missing DISCORD_APP_ID environment variable"),
-            )
-            .expect("Invalid DISCORD_APP_ID environment variable"),
+            ApplicationId::from_str(&ENV.discord_app_id).expect("Invalid Application ID"),
         );
 
         state
@@ -111,13 +104,9 @@ async fn run() -> Result<(), Error> {
 }
 
 async fn register_commands(guild_id: Option<String>) -> Result<(), Error> {
-    let http = serenity::http::Http::new(
-        &env::var("DISCORD_TOKEN").expect("Missing DISCORD_TOKEN environment variable"),
-    );
+    let http = serenity::http::Http::new(&ENV.discord_token);
 
-    http.set_application_id(ApplicationId::from_str(
-        &env::var("DISCORD_APP_ID").expect("Missing DISCORD_APP_ID environment variable"),
-    )?);
+    http.set_application_id(ApplicationId::from_str(&ENV.discord_app_id)?);
 
     let commands = vec![
         handlers::commands::MathCommand::command(),

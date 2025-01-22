@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::{
+    env::ENV,
     error::Error,
     models::api::ai::{
         GenerateImageRequest, GenerateImageResponse, GenerateTextMessage, GenerateTextMessageRole,
@@ -105,7 +106,7 @@ impl AiCommand {
         let response = state
             .http_client
             .post("https://ai.nigga.church/v2/generate/text")
-            .header("Authorization", std::env::var("AI_TOKEN").unwrap())
+            .header("Authorization", &ENV.ai_token)
             .json(
                 &GenerateTextRequest::new()
                     .model("llama-3-8b-instruct")
@@ -152,7 +153,7 @@ impl AiCommand {
         let response = state
             .http_client
             .post("https://ai.nigga.church/v2/generate/image")
-            .header("Authorization", std::env::var("AI_TOKEN").unwrap())
+            .header("Authorization", &ENV.ai_token)
             .json(
                 &GenerateImageRequest::new()
                     .source("codename-comet")

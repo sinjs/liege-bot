@@ -14,6 +14,8 @@ use axum_extra::{
 use serde::{Deserialize, Serialize};
 use serenity::all::{User, UserId};
 
+use crate::env::ENV;
+
 struct Keys {
     encoding: jsonwebtoken::EncodingKey,
     decoding: jsonwebtoken::DecodingKey,
@@ -29,7 +31,7 @@ impl Keys {
 }
 
 static KEYS: LazyLock<Keys> = LazyLock::new(|| {
-    let secret = std::env::var("JWT_SECRET").expect("JWT_SECRET must be set");
+    let secret = &ENV.jwt_secret;
     Keys::new(secret.as_bytes())
 });
 
