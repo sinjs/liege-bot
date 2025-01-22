@@ -1,6 +1,2 @@
 [workspace]
-resolver = "2"
 members = ["./apps/backend"]
-
-[workspace.package]
-version = "0.1.0"
