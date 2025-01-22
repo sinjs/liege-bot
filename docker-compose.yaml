@@ -1,3 +1,5 @@
+# Note: You can change the tags to any version number to pin it to a specific version. You can
+#       also use the tag `master` for the latest commit and `sha-[hash]` for a specific commit
 services:
   # The backend service runs the API and Interaction handling logic
   backend:
@@ -13,11 +15,9 @@ services:
       - CODE_TOKEN=${CODE_TOKEN}
       - AI_TOKEN=${AI_TOKEN}
   frontend:
-    # Note: You can change the tag to any version number to pin it to a specific version. You can
-    #       also use the tag `master` for the latest commit and `sha-[hash]` for a specific commit
     image: ghcr.io/sinjs/liege-bot-frontend:latest
   proxy:
-    image: nginx:latest
+    image: ghcr.io/sinjs/liege-bot-proxy:latest
     volumes:
       - ./config/nginx.conf:/etc/nginx/nginx.conf
     ports:

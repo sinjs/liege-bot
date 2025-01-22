@@ -1,0 +1,46 @@
+on:
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+    branches: ["master", "release"]
+  pull_request:
+    branches: ["master"]
+defaults:
+  run:
+    working-directory: ./apps/proxy
+jobs:
+  docker-build:
+    name: Build Docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/sinjs/liege-bot-proxy
+          tags: |
+            type=semver,pattern={{version}}
+            type=ref,event=branch
+            type=sha
+        env:
+          DOCKER_METADATA_SHORT_SHA_LENGTH: 7
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/proxy
+          file: ./apps/proxy/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

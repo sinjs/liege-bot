@@ -20,9 +20,9 @@ services:
     volumes:
       - ./apps/frontend:/app
       - /app/node_modules
-  proxy:
-    image: nginx:latest
-    volumes:
-      - ./config/nginx-dev.conf:/etc/nginx/nginx.conf
+  proxy-dev:
+    build:
+      context: ./apps/proxy
+      dockerfile: Dockerfile.dev
     ports:
       - "8700:8700"
