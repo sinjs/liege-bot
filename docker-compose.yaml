@@ -11,8 +11,6 @@ services:
       - AI_TOKEN=${AI_TOKEN}
   frontend:
     image: ghcr.io/sinjs/liege-bot-frontend:master
-    environment:
-      - VITE_DISCORD_APP_ID=${VITE_DISCORD_APP_ID}
   proxy:
     image: nginx:latest
     volumes:

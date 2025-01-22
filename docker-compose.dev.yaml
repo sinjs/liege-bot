@@ -17,8 +17,6 @@ services:
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile.dev
-    environment:
-      - VITE_DISCORD_APP_ID=${VITE_DISCORD_APP_ID}
     volumes:
       - ./apps/frontend:/app
       - /app/node_modules
