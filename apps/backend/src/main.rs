@@ -10,7 +10,10 @@ use error::Error;
 use handlers::commands::CommandHandler;
 use middleware::ratelimit::JwtKeyExtractor;
 use reqwest::Client;
-use serenity::all::{ApplicationId, GuildId};
+use serenity::all::{
+    ApplicationId, CommandType, CreateCommand, EntryPointHandlerType, GuildId, InstallationContext,
+    InteractionContext,
+};
 use serenity::interactions_endpoint::Verifier;
 use tower_governor::governor::GovernorConfigBuilder;
 use tower_governor::GovernorLayer;
@@ -108,7 +111,31 @@ async fn register_commands(guild_id: Option<String>) -> Result<(), Error> {
 
     http.set_application_id(ApplicationId::from_str(&ENV.discord_app_id)?);
 
+    {
+        let global_commands = http.get_global_commands().await?;
+        let entry_point_id = global_commands
+            .iter()
+            .find(|c| c.kind == CommandType::PrimaryEntryPoint)
+            .map(|c| c.id);
+
+        if let Some(entry_point_id) = entry_point_id {
+            serenity::all::Command::delete_global_command(&http, entry_point_id).await?;
+        }
+    }
+
+    let entry_point_command = CreateCommand::new("launch")
+        .kind(CommandType::PrimaryEntryPoint)
+        .description("Launch the Liege activity")
+        .handler(EntryPointHandlerType::DiscordLaunchActivity)
+        .integration_types(vec![InstallationContext::Guild, InstallationContext::User])
+        .contexts(vec![
+            InteractionContext::Guild,
+            InteractionContext::BotDm,
+            InteractionContext::PrivateChannel,
+        ]);
+
     let commands = vec![
+        entry_point_command,
         handlers::commands::MathCommand::command(),
         handlers::commands::CodeCommand::command(),
         handlers::commands::AiCommand::command(),
