@@ -28,7 +28,7 @@ jobs:
       - name: Run ESLint
         run: pnpm lint
   build-backend:
-    name: Build Backend
+    name: Build Frontend
     runs-on: ubuntu-latest
     permissions:
       contents: read
