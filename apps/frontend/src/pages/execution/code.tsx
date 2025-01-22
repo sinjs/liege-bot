@@ -36,18 +36,7 @@ export function ExecutionCode() {
   const [code, setCode] = useState("console.log('Hello, world!')");
 
   const [running, setRunning] = useState(false);
-  const [result, setResult] = useState<ExecuteResponse | null>({
-    language: "javascript",
-    version: "20.11.1",
-    run: {
-      stdout: "Hello, world!\n",
-      stderr: "",
-      output: "Hello, world!\n",
-      code: 0,
-      signal: null,
-    },
-    compile: null,
-  });
+  const [result, setResult] = useState<ExecuteResponse | null>(null);
 
   async function run() {
     setRunning(true);
