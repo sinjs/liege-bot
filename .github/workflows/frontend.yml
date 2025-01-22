@@ -8,8 +8,8 @@ defaults:
   run:
     working-directory: ./apps/frontend
 jobs:
-  lint:
-    name: Lint
+  lint-frontend:
+    name: Lint Frontend
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,8 +26,8 @@ jobs:
         run: pnpm install
       - name: Run ESLint
         run: pnpm lint
-  docker-build:
-    name: Build Docker
+  build-backend:
+    name: Build Backend
     runs-on: ubuntu-latest
     permissions:
       contents: read

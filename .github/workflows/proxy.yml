@@ -8,8 +8,8 @@ defaults:
   run:
     working-directory: ./apps/proxy
 jobs:
-  docker-build:
-    name: Build Docker
+  build-proxy:
+    name: Build Proxy
     runs-on: ubuntu-latest
     permissions:
       contents: read
