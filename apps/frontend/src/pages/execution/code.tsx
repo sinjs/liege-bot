@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { api } from "@/lib/utils";
 import Editor from "@monaco-editor/react";
 import { PlayIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ExecuteResponse {
   language: string;
@@ -29,14 +29,52 @@ interface ExecuteStage {
   signal: string | null;
 }
 
+const defaultCode: Record<string, string> = {
+  javascript: `function greet(name) {
+    console.log("Hello, " + name + "!");
+}
+greet("Marcus");`,
+
+  cpp: `#include <iostream>
+#include <string>
+
+void greet(const std::string& name) {
+    std::cout << "Hello, " << name << "!" << std::endl;
+}
+
+int main() {
+    greet("Marcus");
+}`,
+
+  shell: `greet() {
+  echo "Hello, $1!"
+}
+
+greet Marcus`,
+
+  rust: `fn greet(name: &str) {
+    println!("Hello, {name}!");
+}
+
+fn main() {
+    greet("Marcia");
+}`,
+
+  python: "# I hate python so no default code",
+};
+
 export function ExecutionCode() {
   const { auth } = useAuth();
 
   const [language, setLanguage] = useState("javascript");
-  const [code, setCode] = useState("console.log('Hello, world!')");
+  const [code, setCode] = useState(defaultCode[language]);
 
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<ExecuteResponse | null>(null);
+
+  useEffect(() => {
+    setCode(defaultCode[language]);
+  }, [language]);
 
   async function run() {
     setRunning(true);
