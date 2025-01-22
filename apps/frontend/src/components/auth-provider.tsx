@@ -3,6 +3,8 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 import { DiscordSDK } from "@discord/embedded-app-sdk";
 import { Auth, AuthContext } from "./auth-context";
 import { useConfig } from "@/hooks/use-config";
+import { isDesignMode } from "@/lib/dev";
+import { api } from "@/lib/utils";
 
 export function AuthProvider({
   children,
@@ -12,16 +14,16 @@ export function AuthProvider({
   fallback?: ReactNode;
 }) {
   const config = useConfig();
+  const [auth, setAuth] = useState<Auth | null>(null);
 
-  console.log(import.meta.env);
   const discordSdk = useMemo(
-    () => new DiscordSDK(config.discordAppId),
+    () => (isDesignMode() ? null! : new DiscordSDK(config.discordAppId)),
     [config.discordAppId]
   );
 
-  const [auth, setAuth] = useState<Auth | null>(null);
-
   useEffect(() => {
+    if (isDesignMode()) return;
+
     async function initialize() {
       await discordSdk.ready();
 
@@ -33,7 +35,7 @@ export function AuthProvider({
         scope: ["applications.commands", "identify"],
       });
 
-      const response = await fetch("/.proxy/api/token", {
+      const response = await fetch(api("/token"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,6 +59,8 @@ export function AuthProvider({
 
     initialize();
   }, [discordSdk, config.discordAppId]);
+
+  if (isDesignMode()) return children;
 
   return (
     <AuthContext.Provider value={{ auth, discordSdk }}>

@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { api } from "@/lib/utils";
 import Editor from "@monaco-editor/react";
 import { PlayIcon } from "lucide-react";
 import { useState } from "react";
@@ -49,7 +50,7 @@ export function ExecutionCode() {
     setRunning(true);
 
     try {
-      const response = await fetch("/.proxy/api/code", {
+      const response = await fetch(api("/code"), {
         method: "POST",
         headers: {
           Authorization: "wip",

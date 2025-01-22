@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
+import { api, cn } from "@/lib/utils";
 import { BotIcon, SendIcon, UserIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Markdown from "react-markdown";
@@ -73,7 +73,7 @@ export function AIChat() {
 
     try {
       const eventSource = createEventSource({
-        url: `/.proxy/api/ai?${searchParams.toString()}`,
+        url: api(`ai?${searchParams.toString()}`),
         headers: { Authorization: `Bearer ${auth?.token}` },
       });
 

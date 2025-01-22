@@ -17,6 +17,9 @@ import cssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
 import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
 import { ConfigProvider } from "./components/config-provider.tsx";
+import { initDev } from "./lib/dev.ts";
+
+initDev();
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
