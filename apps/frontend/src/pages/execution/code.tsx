@@ -11,7 +11,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { api } from "@/lib/utils";
 import Editor from "@monaco-editor/react";
-import { PlayIcon } from "lucide-react";
+import { PlayIcon, UtensilsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface ExecuteResponse {
@@ -68,13 +68,18 @@ export function ExecutionCode() {
 
   const [language, setLanguage] = useState("javascript");
   const [code, setCode] = useState(defaultCode[language]);
+  const [isDirty, setDirty] = useState(false);
 
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<ExecuteResponse | null>(null);
 
   useEffect(() => {
-    setCode(defaultCode[language]);
-  }, [language]);
+    if (!isDirty) setCode(defaultCode[language]);
+  }, [language, isDirty]);
+
+  useEffect(() => {
+    setDirty(code !== defaultCode[language]);
+  }, [code, language]);
 
   async function run() {
     setRunning(true);
@@ -102,13 +107,18 @@ export function ExecutionCode() {
     }
   }
 
-  console.log(result);
+  function reset() {
+    setCode(defaultCode[language]);
+  }
 
   return (
     <div className="h-screen flex flex-col">
       <div className="p-3 flex space-x-3 border-b">
         <Button onClick={run} disabled={running}>
           <PlayIcon /> Run
+        </Button>
+        <Button onClick={reset} variant="outline">
+          <UtensilsIcon /> Reset
         </Button>
         <Select value={language} onValueChange={(value) => setLanguage(value)}>
           <SelectTrigger className="w-[180px]">
