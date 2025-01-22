@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAuth } from "@/hooks/use-auth";
 import { api } from "@/lib/utils";
 import Editor from "@monaco-editor/react";
 import { PlayIcon } from "lucide-react";
@@ -29,6 +30,8 @@ interface ExecuteStage {
 }
 
 export function ExecutionCode() {
+  const { auth } = useAuth();
+
   const [language, setLanguage] = useState("javascript");
   const [code, setCode] = useState("console.log('Hello, world!')");
 
@@ -53,7 +56,7 @@ export function ExecutionCode() {
       const response = await fetch(api("/code"), {
         method: "POST",
         headers: {
-          Authorization: "wip",
+          Authorization: `Bearer ${auth?.token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
