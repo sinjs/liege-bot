@@ -72,7 +72,7 @@ async fn run() -> Result<(), Error> {
     );
 
     let api_router = Router::new()
-        .route("/ai", get(controllers::ai::get))
+        .route("/ai", post(controllers::ai::post))
         .route("/code", post(controllers::code::post))
         .route("/math", post(controllers::math::post))
         .layer(GovernorLayer {

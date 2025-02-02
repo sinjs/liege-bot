@@ -61,10 +61,6 @@ export function AIChat() {
     addMessage({ sender: "user", content: prompt, state: "final" });
     setPrompt("");
 
-    const searchParams = new URLSearchParams();
-    searchParams.set("modelType", "text");
-    searchParams.set("prompt", prompt);
-
     const messageId = addMessage({
       sender: "bot",
       content: "",
@@ -73,8 +69,20 @@ export function AIChat() {
 
     try {
       const eventSource = createEventSource({
-        url: api(`ai?${searchParams.toString()}`),
-        headers: { Authorization: `Bearer ${auth?.token}` },
+        method: "POST",
+        body: JSON.stringify({
+          modelType: "text",
+          prompt,
+          history: messages.slice(-20).map((message) => ({
+            role: message.sender,
+            content: message.content,
+          })),
+        }),
+        url: api(`ai`),
+        headers: {
+          Authorization: `Bearer ${auth?.token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       for await (const { data } of eventSource) {

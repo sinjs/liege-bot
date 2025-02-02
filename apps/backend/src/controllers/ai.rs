@@ -6,7 +6,6 @@ use axum::{
     response::{sse, IntoResponse, Response, Sse},
     Json,
 };
-use axum_extra::extract::Query;
 use futures::{Stream, StreamExt};
 use reqwest::Url;
 use reqwest_eventsource::{
@@ -36,10 +35,18 @@ pub enum AiModelType {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase", tag = "role", content = "content")]
+pub enum AiHistoryMessage {
+    User(String),
+    Bot(String),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AiRequest {
     pub model_type: AiModelType,
     pub prompt: String,
+    pub history: Option<Vec<AiHistoryMessage>>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -55,10 +62,10 @@ pub enum AiEvent {
     Response(String),
 }
 
-pub async fn get(
+pub async fn post(
     _claims: Claims,
     State(state): State<Arc<AppState>>,
-    Query(body): Query<AiRequest>,
+    Json(body): Json<AiRequest>,
 ) -> Response {
     match body.model_type {
         AiModelType::Image => match generate_image(&state.http_client, body.prompt).await {
@@ -76,18 +83,44 @@ pub async fn get(
                 .into_response(),
         },
 
-        AiModelType::Text => match generate_text(&state.http_client, body.prompt).await {
-            Ok(sse) => sse.into_response(),
-            Err(_) => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Failed to generate text").into_response()
+        AiModelType::Text => {
+            let messages = {
+                let history = body.history.unwrap_or(vec![]);
+
+                let mut messages: Vec<GenerateTextMessage> = vec![];
+
+                for message in history {
+                    messages.push(match message {
+                        AiHistoryMessage::User(content) => {
+                            GenerateTextMessage::new(GenerateTextMessageRole::User, &content)
+                        }
+                        AiHistoryMessage::Bot(content) => {
+                            GenerateTextMessage::new(GenerateTextMessageRole::Assistant, &content)
+                        }
+                    })
+                }
+
+                messages.push(GenerateTextMessage::new(
+                    GenerateTextMessageRole::User,
+                    &body.prompt,
+                ));
+
+                messages
+            };
+
+            match generate_text(&state.http_client, messages).await {
+                Ok(sse) => sse.into_response(),
+                Err(_) => {
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Failed to generate text").into_response()
+                }
             }
-        },
+        }
     }
 }
 
 async fn generate_text(
     http: &reqwest::Client,
-    prompt: String,
+    messages: Vec<GenerateTextMessage>,
 ) -> Result<Sse<impl Stream<Item = Result<sse::Event, Infallible>>>, Error> {
     let mut event_source = http
         .post("https://ai.nigga.church/v2/generate/text")
@@ -95,10 +128,7 @@ async fn generate_text(
         .json(
             &GenerateTextRequest::new()
                 .model("llama-3-8b-instruct")
-                .add_message(GenerateTextMessage::new(
-                    GenerateTextMessageRole::User,
-                    &prompt,
-                ))
+                .messages(messages)
                 .stream(true),
         )
         .eventsource()?;
