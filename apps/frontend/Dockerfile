@@ -2,6 +2,10 @@ FROM node:22-alpine AS builder
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+
+# FIXME: Bad workaround
+ENV COREPACK_INTEGRITY_KEYS=0
+
 RUN corepack enable
 WORKDIR /app
 
