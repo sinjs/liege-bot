@@ -33,7 +33,7 @@ impl CommandHandler for MathCommand {
         let is_ok = result.is_ok();
 
         let content = format!(
-            "**Expression:**\n```\n{}\n```\n**{}**:\n```{}\n```",
+            "**Expression:**\n```\n{}\n```\n**{}**:\n```{}\n```\n\n-# For more information on how to use this command, [view the documentation](<https://numbat.dev/doc/>)",
             expression,
             if is_ok { "Result" } else { "Error" },
             if is_ok {
