@@ -76,6 +76,9 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <ModeToggle />
+        <p className="text-sm text-muted-foreground">
+          v{import.meta.env.PACKAGE_VERSION}-{import.meta.env.MODE}
+        </p>
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
