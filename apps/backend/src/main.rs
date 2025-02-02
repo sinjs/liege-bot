@@ -25,6 +25,7 @@ mod controllers;
 mod env;
 mod error;
 mod handlers;
+mod math;
 mod middleware;
 mod models;
 
