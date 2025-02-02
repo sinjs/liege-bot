@@ -1,0 +1,49 @@
+.numbat-dimmed {
+  color: #888 !important;
+}
+
+.numbat-emphasized {
+  font-weight: bold;
+}
+
+.numbat-string {
+  color: #59f78d !important;
+}
+
+.numbat-keyword {
+  font-weight: 700 !important;
+  color: #ff69c0 !important;
+}
+
+.numbat-value {
+  color: #f3f99d !important;
+}
+
+.numbat-unit {
+  color: #99ecfe !important;
+}
+
+.numbat-type-identifier {
+  color: #57c7ff !important;
+  font-style: italic !important;
+}
+
+.numbat-operator {
+  font-weight: 700 !important;
+}
+
+.numbat-decorator {
+  color: #59f78d !important;
+}
+
+.numbat-diagnostic-red {
+  color: #ff5b56 !important;
+}
+
+.numbat-diagnostic-blue {
+  color: #56c7ff !important;
+}
+
+.numbat-diagnostic-bold {
+  font-weight: 700 !important;
+}
