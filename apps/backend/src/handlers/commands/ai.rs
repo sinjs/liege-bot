@@ -105,11 +105,19 @@ impl AiCommand {
 
         let response = state
             .http_client
-            .post("https://ai.nigga.church/v2/generate/text")
+            .post("https://ai.nigga.church/v3/generate/text")
             .header("Authorization", &ENV.ai_token)
             .json(
                 &GenerateTextRequest::new()
-                    .model("llama-3-8b-instruct")
+                    .model("gemini-2.0-flash-lite-preview-02-05")
+                    .add_message(GenerateTextMessage::new(GenerateTextMessageRole::System, "You are Liege, a friendly and helpful chatbot designed to assist users with various inquiries. Your responses should be:
+
+1. **Concise & Relevant** – Provide clear, direct answers without unnecessary elaboration.  
+2. **Under 2000 Characters** – Ensure every response stays within this limit. Trim excess details if needed.  
+3. **Engaging & Polite** – Maintain a friendly and professional tone.
+4. **Accurate & Informative** – Base your answers on verified information, avoiding speculation.  
+
+If a user request requires a longer response, summarize the key points."))
                     .add_message(GenerateTextMessage::new(
                         GenerateTextMessageRole::User,
                         prompt,
@@ -119,11 +127,15 @@ impl AiCommand {
             .await?
             .error_for_status()?;
 
-        let response = response
+        let mut response = response
             .json::<GenerateTextResponse>()
             .await?
-            .response
+            .choices
+            .get(0)
+            .and_then(|choice| choice.message.content.clone())
             .unwrap_or("[empty response]".into());
+
+        response.truncate(2000);
 
         interaction
             .create_followup(
