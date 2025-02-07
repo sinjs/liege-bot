@@ -16,7 +16,6 @@ serenity = { version = "0.12.4", default-features = false, features = [
   "interactions_endpoint",
   "rustls_backend",
 ] }
-tiny_http = "0.12.0"
 tokio = { version = "1.42.0", features = ["full"] }
 serde_with = "3.12.0"
 clap = { version = "4.5.23", features = ["derive"] }
@@ -26,10 +25,8 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 jsonwebtoken = "9.3.0"
 axum-extra = { version = "0.10.0", features = ["typed-header", "query"] }
 tower_governor = "0.6.0"
-tower = "0.5.2"
 reqwest-eventsource = "0.6.0"
 futures = "0.3.5"
-tokio-stream = "0.1.17"
 tower-http = { version = "0.6.2", features = ["cors"] }
 chrono = { version = "0.4.39", features = ["serde"] }
 numbat = { version = "1.16.0", features = ["html-formatter"] }
