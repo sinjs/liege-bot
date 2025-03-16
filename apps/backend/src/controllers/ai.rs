@@ -1,5 +1,6 @@
 use std::{convert::Infallible, sync::Arc};
 
+use anyhow::anyhow;
 use axum::{
     extract::State,
     http::StatusCode,
@@ -171,18 +172,23 @@ async fn generate_text(
 
 async fn generate_image(http: &reqwest::Client, prompt: String) -> Result<Url, Error> {
     let response = http
-        .post("https://ai.nigga.church/v2/generate/image")
+        .post("https://ai.nigga.church/v3/generate/image")
         .header("Authorization", &ENV.ai_token)
         .json(
             &GenerateImageRequest::new()
-                .source("codename-comet")
+                .source("flux-1-schnell")
                 .prompt(prompt),
         )
         .send()
         .await?
         .error_for_status()?;
 
-    let response = response.json::<GenerateImageResponse>().await?.image_url;
+    let response = response.json::<GenerateImageResponse>().await?;
 
-    Ok(response)
+    let url = response
+        .image_url
+        .or(response.data_url)
+        .ok_or_else(|| anyhow!("No image URL or data URL"))?;
+
+    Ok(url)
 }

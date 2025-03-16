@@ -14,7 +14,7 @@ use super::CommandHandler;
 
 use anyhow::anyhow;
 use serenity::all::{
-    CommandInteraction, CommandOptionType, CreateCommand, CreateCommandOption,
+    CommandInteraction, CommandOptionType, CreateAttachment, CreateCommand, CreateCommandOption,
     CreateInteractionResponseFollowup, InstallationContext, InteractionContext, ResolvedOption,
     ResolvedValue,
 };
@@ -164,25 +164,41 @@ If a user request requires a longer response, summarize the key points."))
 
         let response = state
             .http_client
-            .post("https://ai.nigga.church/v2/generate/image")
+            .post("https://ai.nigga.church/v3/generate/image")
             .header("Authorization", &ENV.ai_token)
             .json(
                 &GenerateImageRequest::new()
-                    .source("codename-comet")
+                    .source("flux-1-schnell")
                     .prompt(prompt),
             )
             .send()
             .await?
             .error_for_status()?;
 
-        let response = response.json::<GenerateImageResponse>().await?.image_url;
+        let response = response.json::<GenerateImageResponse>().await?;
 
-        interaction
-            .create_followup(
-                &state.serenity_http,
-                CreateInteractionResponseFollowup::new().content(response),
-            )
-            .await?;
+        if let Some(image_url) = response.image_url {
+            interaction
+                .create_followup(
+                    &state.serenity_http,
+                    CreateInteractionResponseFollowup::new().content(image_url),
+                )
+                .await?;
+        }
+
+        if let Some(data_url) = response.data_url {
+            let data_url = dataurl::DataUrl::parse(&data_url.as_str())
+                .map_err(|e| anyhow!("Failed to parse data URL: {e:?}"))?;
+            let bytes = data_url.get_data();
+
+            interaction
+                .create_followup(
+                    &state.serenity_http,
+                    CreateInteractionResponseFollowup::new()
+                        .add_file(CreateAttachment::bytes(bytes, "image.jpg")),
+                )
+                .await?;
+        }
 
         Ok(())
     }

@@ -305,5 +305,7 @@ impl GenerateImageRequest {
 #[serde(rename_all = "camelCase")]
 pub struct GenerateImageResponse {
     #[serde(rename = "imageURL")]
-    pub image_url: Url,
+    pub image_url: Option<Url>,
+    #[serde(rename = "dataURL")]
+    pub data_url: Option<Url>,
 }
