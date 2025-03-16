@@ -16,7 +16,7 @@ use anyhow::anyhow;
 use serenity::all::{
     CommandInteraction, CommandOptionType, CreateAttachment, CreateCommand, CreateCommandOption,
     CreateInteractionResponseFollowup, InstallationContext, InteractionContext, ResolvedOption,
-    ResolvedValue,
+    ResolvedValue, UserId,
 };
 
 pub struct AiCommand;
@@ -161,6 +161,16 @@ If a user request requires a longer response, summarize the key points."))
         else {
             return Err(anyhow!("Failed to get prompt as string"));
         };
+
+        if interaction.user.id == UserId::new(778659522054717460) {
+            interaction
+                .create_followup(
+                    &state.serenity_http,
+                    CreateInteractionResponseFollowup::new().content("u are a doo doo head"),
+                )
+                .await?;
+            return Ok(());
+        }
 
         let response = state
             .http_client
