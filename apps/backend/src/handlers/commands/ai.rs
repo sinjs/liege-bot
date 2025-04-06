@@ -109,7 +109,7 @@ impl AiCommand {
             .header("Authorization", &ENV.ai_token)
             .json(
                 &GenerateTextRequest::new()
-                    .model("gemini-2.0-flash-lite-preview-02-05")
+                    .model("gemini-2.0-flash-exp")
                     .add_message(GenerateTextMessage::new(GenerateTextMessageRole::System, "You are Liege, a friendly and helpful chatbot designed to assist users with various inquiries. Your responses should be:
 
 1. **Concise & Relevant** – Provide clear, direct answers without unnecessary elaboration.  
