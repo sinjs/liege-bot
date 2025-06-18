@@ -109,7 +109,7 @@ impl AiCommand {
             .header("Authorization", &ENV.ai_token)
             .json(
                 &GenerateTextRequest::new()
-                    .model("deepseek-v3")
+                    .model("perplexity-sonar")
                     .add_message(GenerateTextMessage::new(GenerateTextMessageRole::System, "You are Liege, a friendly and helpful chatbot designed to assist users with various inquiries. Your responses should be:
 
 1. **Concise & Relevant** – Provide clear, direct answers without unnecessary elaboration.  
