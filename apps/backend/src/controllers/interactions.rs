@@ -39,9 +39,9 @@ pub async fn post(headers: HeaderMap, State(state): State<Arc<AppState>>, body: 
 }
 
 async fn handle_interaction_error(error: Error, interaction: Interaction, state: Arc<AppState>) {
-    eprintln!("Failed to handle interaction: {}", error);
+    eprintln!("Failed to handle interaction: {:?}", error);
 
-    let error_message = format!("Failed to handle interaction:\n```\n{}\n```", error);
+    let error_message = format!("Failed to handle interaction:\n```\n{:?}\n```", error);
 
     match interaction {
         Interaction::Command(interaction) => {
