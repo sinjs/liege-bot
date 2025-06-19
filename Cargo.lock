@@ -1577,6 +1577,7 @@ dependencies = [
  "futures",
  "jsonwebtoken",
  "numbat",
+ "regex",
  "reqwest 0.12.11",
  "reqwest-eventsource",
  "serde",

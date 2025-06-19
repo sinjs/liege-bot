@@ -1,4 +1,7 @@
-use std::sync::Arc;
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    sync::Arc,
+};
 
 use crate::{
     env::ENV,
@@ -13,6 +16,8 @@ use crate::{
 use super::CommandHandler;
 
 use anyhow::anyhow;
+use regex::Regex;
+use reqwest::Url;
 use serenity::all::{
     CommandInteraction, CommandOptionType, CreateAttachment, CreateCommand, CreateCommandOption,
     CreateInteractionResponseFollowup, InstallationContext, InteractionContext, ResolvedOption,
@@ -113,7 +118,7 @@ impl AiCommand {
                     .add_message(GenerateTextMessage::new(GenerateTextMessageRole::System, "You are Liege, a friendly and helpful chatbot designed to assist users with various inquiries. Your responses should be:
 
 1. **Concise & Relevant** – Provide clear, direct answers without unnecessary elaboration.  
-2. **Under 2000 Characters** – Ensure every response stays within this limit. Trim excess details if needed.  
+2. **Under 200 words** – Ensure every response stays within this limit. Trim excess details if needed.  
 3. **Engaging & Polite** – Maintain a friendly and professional tone.
 4. **Accurate & Informative** – Base your answers on verified information, avoiding speculation.  
 
@@ -127,13 +132,42 @@ If a user request requires a longer response, summarize the key points."))
             .await?
             .error_for_status()?;
 
-        let mut response = response
+        let raw_response = response
             .json::<GenerateTextResponse>()
             .await?
             .choices
             .get(0)
             .and_then(|choice| choice.message.content.clone())
             .unwrap_or("[empty response]".into());
+
+        let footnote_link_regex = Regex::new(r"\[[0-9]+\] \[.+\]\((.+)\)")?;
+        let link_matches: Vec<&str> = footnote_link_regex
+            .captures_iter(&raw_response)
+            .filter_map(|caps| caps.get(1).map(|m| m.as_str()))
+            .collect();
+
+        let footnote_list_regex = Regex::new(r"\n\n\n> \[0\][\S\s]*$")?;
+        let inline_footnote_regex = Regex::new(r"\[[0-9]+\]")?;
+
+        let replaced_response = footnote_list_regex.replace_all(&raw_response, "");
+        let replaced_response = inline_footnote_regex
+            .replace_all(&replaced_response, "")
+            .to_string();
+        let mut response = replaced_response.to_string();
+
+        let sources = link_matches
+            .into_iter()
+            .filter_map(|url_str| {
+                Url::parse(url_str)
+                    .ok()
+                    .and_then(|url| url.host_str().map(|host| format!("[{host}](<{url}>)")))
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        if !sources.is_empty() {
+            response.push_str(&format!("\n-# > References: {sources}"));
+        }
 
         response.truncate(2000);
 
