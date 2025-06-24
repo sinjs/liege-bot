@@ -1,13 +1,18 @@
-# Build Stage
-FROM rust:1.83-bookworm AS builder
-
+FROM lukemathwalker/cargo-chef:0.1.71-rust-1.87 AS chef
 WORKDIR /app
+
+# Planning Stage
+FROM chef AS planner
 COPY . .
-RUN \
-  --mount=type=cache,target=/app/target/ \
-  --mount=type=cache,target=/usr/local/cargo/registry/ \
-  cargo build --release && \
-  cp ./target/release/liege-bot /
+RUN cargo chef prepare --recipe-path recipe.json
+
+# Build Stage
+FROM chef AS builder
+COPY --from=planner /app/recipe.json recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
+COPY . .
+RUN cargo build --release --bin liege-bot \
+  && cp ./target/release/liege-bot /
 
 # Run stage
 FROM debian:bookworm AS final
