@@ -3,14 +3,16 @@
 A multipurpose Discord Bot written in Rust which can be added to your user or a guild. It is
 webhook-based meaning it does not connect to the gateway and can be added to the User.
 
+**Minimum Supported Rust Version:** 1.88.0
+
 ## Features
 
 Since the bot is still under heavy development, some features may not exist yet
 
-- AI Chat / AI Image using an API
-- Sandboxed Code Execution in various languages
-- Economy and Gambling
-- Activity versions of the AI and Code Execution features
+-   AI Chat / AI Image using an API
+-   Sandboxed Code Execution in various languages
+-   Economy and Gambling
+-   Activity versions of the AI and Code Execution features
 
 ## Environment
 
@@ -61,9 +63,9 @@ $ cloudflared tunnel --url http://localhost:8700
 
 Afterwards, on the Discord Developer Portal, set...
 
-- the **Interactions Endpoint URL** to
-  `https://example.trycloudflare.com/api/interactions`
-- the **Root Mapping** to `example.trycloudflare.com` <sub>_(not including a protocol or path)_</sub>
+-   the **Interactions Endpoint URL** to
+    `https://example.trycloudflare.com/api/interactions`
+-   the **Root Mapping** to `example.trycloudflare.com` <sub>_(not including a protocol or path)_</sub>
 
 ## Production
 

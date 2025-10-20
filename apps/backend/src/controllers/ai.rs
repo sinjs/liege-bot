@@ -2,20 +2,21 @@ use std::{convert::Infallible, sync::Arc};
 
 use anyhow::anyhow;
 use axum::{
+    Json,
     extract::State,
     http::StatusCode,
-    response::{sse, IntoResponse, Response, Sse},
-    Json,
+    response::{IntoResponse, Response, Sse, sse},
 };
 use futures::{Stream, StreamExt};
 use reqwest::Url;
 use reqwest_eventsource::{
-    retry::{self},
     RequestBuilderExt,
+    retry::{self},
 };
 use serde::{Deserialize, Serialize};
 
 use crate::{
+    AppState,
     env::ENV,
     error::Error,
     models::{
@@ -25,7 +26,6 @@ use crate::{
         },
         auth::Claims,
     },
-    AppState,
 };
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -122,7 +122,7 @@ pub async fn post(
 async fn generate_text(
     http: &reqwest::Client,
     messages: Vec<GenerateTextMessage>,
-) -> Result<Sse<impl Stream<Item = Result<sse::Event, Infallible>>>, Error> {
+) -> Result<Sse<impl Stream<Item = Result<sse::Event, Infallible>> + use<>>, Error> {
     let mut event_source = http
         .post("https://ai.nigga.church/v2/generate/text")
         .header("Authorization", &ENV.ai_token)
