@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
 use crate::{
+    AppState,
     env::ENV,
     error::Error,
     models::api::ai::{
         GenerateImageRequest, GenerateImageResponse, GenerateTextMessage, GenerateTextMessageRole,
         GenerateTextRequest, GenerateTextResponse,
     },
-    AppState,
 };
 
 use super::CommandHandler;

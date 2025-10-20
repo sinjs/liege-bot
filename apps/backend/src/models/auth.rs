@@ -2,14 +2,14 @@ use std::sync::LazyLock;
 
 use anyhow::Context;
 use axum::{
+    RequestPartsExt,
     extract::FromRequestParts,
     http::StatusCode,
     response::{IntoResponse, Response},
-    RequestPartsExt,
 };
 use axum_extra::{
-    headers::{authorization::Bearer, Authorization},
     TypedHeader,
+    headers::{Authorization, authorization::Bearer},
 };
 use serde::{Deserialize, Serialize};
 use serenity::all::{User, UserId};

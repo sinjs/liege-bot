@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use crate::{error::Error, models::custom_id::CustomId, AppState};
+use crate::{AppState, error::Error, models::custom_id::CustomId};
 use anyhow::anyhow;
 use serenity::all::{CreateModal, ModalInteraction};
 
@@ -8,7 +8,7 @@ mod code;
 
 pub trait ModalHandler {
     async fn handle_modal(interaction: ModalInteraction, state: Arc<AppState>)
-        -> Result<(), Error>;
+    -> Result<(), Error>;
     fn modal(data: Option<Vec<String>>) -> CreateModal;
 }
 

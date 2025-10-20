@@ -2,18 +2,18 @@ use std::sync::Arc;
 
 use anyhow::anyhow;
 use axum::{
+    Json,
     body::Bytes,
     extract::State,
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
-    Json,
 };
 use serenity::all::{
     CreateInteractionResponse, CreateInteractionResponseMessage, EditInteractionResponse,
     Interaction,
 };
 
-use crate::{error::Error, handlers, AppState};
+use crate::{AppState, error::Error, handlers};
 
 pub async fn post(headers: HeaderMap, State(state): State<Arc<AppState>>, body: Bytes) -> Response {
     if let Err(_) = verify_signature(&state, &headers, &body) {

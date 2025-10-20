@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use codespan_reporting::term::termcolor::WriteColor;
-use numbat::{buffered_writer::BufferedWriter, markup::Formatter, NumbatError};
+use numbat::{NumbatError, buffered_writer::BufferedWriter, markup::Formatter};
 
 macro_rules! push_format {
   ($string:ident, $($arg:tt)*) => {{
@@ -153,11 +153,7 @@ impl EvaluateToString for numbat::Context {
 
         let output = output.trim().to_owned();
 
-        if is_ok {
-            Ok(output)
-        } else {
-            Err(output)
-        }
+        if is_ok { Ok(output) } else { Err(output) }
     }
 }
 

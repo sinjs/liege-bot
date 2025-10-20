@@ -8,11 +8,11 @@ use serenity::all::{
 };
 
 use crate::{
+    AppState,
     env::ENV,
     error::Error,
     handlers::modals::{CodeModal, ModalHandler},
     models::api::code::{ExecuteFile, ExecuteRequest, ExecuteResponse},
-    AppState,
 };
 
 use super::CommandHandler;

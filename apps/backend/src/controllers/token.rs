@@ -1,18 +1,18 @@
 use std::{collections::HashMap, sync::Arc};
 
 use axum::{
+    Json,
     extract::State,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use serenity::all::User;
 
 use crate::{
+    AppState,
     env::ENV,
     error::Error,
     models::auth::{Claims, DiscordTokenResponse, TokenRequest, TokenResponse},
-    AppState,
 };
 
 pub async fn post(State(state): State<Arc<AppState>>, Json(body): Json<TokenRequest>) -> Response {

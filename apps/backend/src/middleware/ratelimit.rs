@@ -3,8 +3,8 @@ use std::net::IpAddr;
 use axum::http::Request;
 use serenity::all::UserId;
 use tower_governor::{
-    key_extractor::{KeyExtractor, SmartIpKeyExtractor},
     GovernorError,
+    key_extractor::{KeyExtractor, SmartIpKeyExtractor},
 };
 
 use crate::models::auth::Claims;

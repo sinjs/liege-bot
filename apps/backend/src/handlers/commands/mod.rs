@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::anyhow;
 use serenity::all::{CommandInteraction, CreateCommand};
 
-use crate::{error::Error, AppState};
+use crate::{AppState, error::Error};
 
 mod ai;
 mod code;

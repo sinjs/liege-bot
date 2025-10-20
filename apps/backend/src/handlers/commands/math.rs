@@ -7,7 +7,7 @@ use serenity::all::{
     InteractionContext, ResolvedOption, ResolvedValue,
 };
 
-use crate::{error::Error, math, AppState};
+use crate::{AppState, error::Error, math};
 
 use super::CommandHandler;
 
