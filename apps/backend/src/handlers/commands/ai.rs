@@ -14,7 +14,7 @@ use super::CommandHandler;
 
 use anyhow::anyhow;
 use regex::Regex;
-use reqwest::Url;
+use reqwest::{StatusCode, Url};
 use serenity::all::{
     CommandInteraction, CommandOptionType, CreateAttachment, CreateCommand, CreateCommandOption,
     CreateInteractionResponseFollowup, InstallationContext, InteractionContext, ResolvedOption,
@@ -214,9 +214,22 @@ If a user request requires a longer response, summarize the key points."))
             )
             .send()
             .await?
-            .error_for_status()?;
+            .error_for_status();
 
-        let response = response.json::<GenerateImageResponse>().await?;
+        if let Err(ref e) = response
+            && e.status().is_some_and(|s| s == StatusCode::BAD_REQUEST)
+        {
+            interaction
+                .create_followup(
+                    &state.serenity_http,
+                    CreateInteractionResponseFollowup::new()
+                        .content("Sorry, you can't generate that."),
+                )
+                .await?;
+            return Ok(());
+        }
+
+        let response = response?.json::<GenerateImageResponse>().await?;
 
         if let Some(image_url) = response.image_url {
             interaction
